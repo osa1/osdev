@@ -17,9 +17,9 @@
 PLATFORM := arm-rpi
 
 # These need to be changed
-NODE=0
+NODE=9
 GPORT=55${NODE}
-USERNAME=user
+USERNAME=oagacan
 
 # Filename of boot image to create (platform can override it if really needed)
 BOOTIMAGE := xinu.boot
@@ -420,7 +420,7 @@ reset:
 	rpipower on ${NODE}
 
 qemu:
-	qemu-system-arm -M versatilepb -m 128M -nographic -cpu arm1176  -kernel xinu.boot 
+	qemu-system-arm -M versatilepb -m 128M -nographic -cpu arm1176  -kernel xinu.boot
 
 qemu-gdb:
 	qemu-system-arm -M versatilepb -m 128M -nographic -cpu arm1176  -kernel xinu.boot -S -gdb tcp::${GPORT}
