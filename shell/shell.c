@@ -107,7 +107,11 @@ const struct centry commandtab[] = {
 #endif
     {"?", FALSE, xsh_help},
 
+    /* assignment 1 */
     {"hello", FALSE, xsh_hello},
+
+    /* assignment 2 */
+    {"prodcons", FALSE, xsh_prodcons},
 };
 
 ulong ncommand = sizeof(commandtab) / sizeof(struct centry);

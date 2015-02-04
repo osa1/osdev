@@ -52,6 +52,9 @@ C_FILES += xsh_test.c xsh_testsuite.c
 # Assignment 1
 C_FILES += xsh_hello.c
 
+# Assignment 2
+C_FILES += xsh_prodcons.c
+
 S_FILES =
 
 # Add the files to the compile source path

@@ -1,0 +1,65 @@
+# Report for Assignment 2
+
+## Question 1
+
+Program consistently produced garbage. The reason is that both producer and
+server are printing the produced/consumed values, and since printing is not an
+atomic operation and since context switching can interrupt both sides in the
+middle of printing process to switch to other process, output gets messed up.
+
+## Question 2
+
+Not all produced values are consumed. The reason is that context switching is
+not happening deterministically, sometimes producer produces but before context
+switching happens to let consumer consume the value, producer produces one more
+value. So consumer sometimes missing some values.
+
+## Functions
+
+
+```c
+shellcmd xsh_prodcons(int nargs, char *args[])
+{
+  n = 0;
+  int count = 2000;
+
+  if (nargs > 2) {
+      printf(
+          "ERROR: Wrong number of arguments given. Expected 1 or 0, found %d.\n"
+          "USAGE: prodcons COUNT\n", nargs);
+      return 1;
+  }
+
+  if (nargs == 2) {
+    count = atoi(args[1]);
+  }
+
+  tid_typ producer_th = create(producer, 1024, 20, "producer", 3, count);
+  tid_typ consumer_th = create(consumer, 1024, 20, "consumer", 3, count);
+
+  resume(consumer_th);
+  resume(producer_th);
+
+  return 0;
+}
+```
+
+```
+void producer(int count)
+{
+  while (n <= count) {
+    printf("producing %d\n", ++n);
+  }
+}
+```
+
+```
+void consumer(int count)
+{
+  while (n <= count) {
+    printf("consuming %d\n", n);
+  }
+}
+```
+
+(see also the diff file submitted to Canvas)
