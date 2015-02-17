@@ -17,6 +17,11 @@ shellcmd xsh_prodcons(int nargs, char *args[])
   }
 
   if (nargs == 2) {
+    if (validate_arg(args[1]) != 0) {
+      printf("ERROR: Can't parse argument: %s. It should be a positive integer.\n",
+             args[1]);
+      return 1;
+    }
     count = atoi(args[1]);
   }
 
@@ -26,5 +31,17 @@ shellcmd xsh_prodcons(int nargs, char *args[])
   resume(consumer_th);
   resume(producer_th);
 
+  return 0;
+}
+
+int validate_arg(char *arg)
+{
+  int i = 0;
+  while (arg[i] != '\0') {
+    if (!(arg[i] >= '0' && arg[i] <= '9')) {
+      return -1;
+    }
+    i++;
+  }
   return 0;
 }
