@@ -4,6 +4,8 @@
 void producer(int count)
 {
   while (n <= count) {
+    wait(consumed);
     printf("producing %d\n", ++n);
+    signal(produced);
   }
 }

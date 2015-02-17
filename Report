@@ -1,3 +1,44 @@
+# Report for Assignment 3
+
+## Question 1
+
+Synchronization is achieved using two semaphores: "produced" and "consumed".
+"produced" is only signalled after a new value is produced. Before a new value is produced, producer waits for "consumed".
+"consumed" is just the opposite. It's signalled after a value is consumed. Consumer waits for "produced" before consumes.
+
+The control flow goes like this:
+
+1. At first consumed = 0 and produced = 1.
+2. Producer can't produce, because it waits for "consumed".
+3. Consumer takes the "produced" semaphore, consumes the value, and signals "consumed".
+4. Consumer is now blocked waiting for "produced", because it's just zeroed.
+5. But producer can make progress, "consumed" is just signalled. It does the opposite, takes "consumed", produces a value, and signals "produced".
+6. Producer is now blocked waiting for "consumed", just like what happened previously to consumer.
+7. Now it's consumer's turn again. GOTO 3.
+
+... and it goes like this. In the end, every produced value is consumed because there's no way for producer to produce twice without consumer consumes the produced value.
+
+## Question 2
+
+With only one semaphore all we can do is this:
+
+producer:
+  wait(sem);
+  produce();
+  signal(sem);
+
+consumer:
+  wait(sem);
+  consume();
+  signal(sem);
+
+This makes sure that consuming and producing is not interleaved, but a value can still be consumed multiple times and some values may not be consumed at all. So with one semaphore we can't guarantee that every value is consumed.
+
+## Code
+
+See the git diff.
+
+
 # Report for Assignment 2
 
 ## Question 1

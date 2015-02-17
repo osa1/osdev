@@ -4,6 +4,8 @@
 
 int n;
 
+semaphore consumed, produced;
+
 shellcmd xsh_prodcons(int nargs, char *args[])
 {
   n = 0;
@@ -24,6 +26,9 @@ shellcmd xsh_prodcons(int nargs, char *args[])
     }
     count = atoi(args[1]);
   }
+
+  consumed = semcreate(0);
+  produced = semcreate(1);
 
   tid_typ producer_th = create(producer, 1024, 20, "producer", 3, count);
   tid_typ consumer_th = create(consumer, 1024, 20, "consumer", 3, count);
