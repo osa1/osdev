@@ -1,3 +1,9 @@
+# Report for Assignment 4
+
+No group members - I'm going solo.
+
+I had to add some semaphores to futures to 1) make them thread-safe 2) allow readers to block while future is waiting to be filled.
+
 # Report for Assignment 3
 
 ## Question 1

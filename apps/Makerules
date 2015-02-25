@@ -9,6 +9,9 @@ C_FILES = date.c rdate.c timeserver.c
 # Assignment 2
 C_FILES += produce.c consume.c
 
+# Assignment 4
+C_FILES += future_prod.c future_cons.c
+
 S_FILES =
 
 # Add the files to the compile source path
