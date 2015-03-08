@@ -323,6 +323,9 @@ clean:
 	rm -f $(DEPFILES)
 	rm -f xinu.boot xinu.bin xinu.elf
 
+sync: clean
+	rsync --exclude=".git" -zarv /home/omer/osdev/exinu/ oagacan@silo.soic.indiana.edu:exinu/
+
 indent:
 	@echo -e "\tIndenting sources"
 	$(INDENT) $(INDENT_ARGS) $(INDENT_TYPES) $(INDENT_FILES)
