@@ -15,11 +15,9 @@ future *future_alloc(int future_flags)
     /* initially we're allowing threads to read and write `state` field */
     f->s = semcreate(1);
 
-    /* initially the value is not produced */
-    f->produced = semcreate(0);
-
-    /* tid is filled by future_get */
-    f->tid = -1;
+    /* initially queues are empty */
+    f->set_queue = semcreate(0);
+    f->get_queue = semcreate(0);
 
     return f;
 }

@@ -17,13 +17,13 @@ typedef struct futent
     int *value;
     int flag;
     int state;
-    tid_typ tid;
 
     /* `s` is used to atomically compare-and-swap the state */
     semaphore s;
 
-    /* `produced` is used to block until value field is filled */
-    semaphore produced;
+    /* a semaphore is essentially a queue for threads */
+    semaphore set_queue;
+    semaphore get_queue;
 } future;
 
 /* Interface for system call */
