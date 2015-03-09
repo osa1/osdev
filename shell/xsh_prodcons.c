@@ -14,107 +14,112 @@ bool validate_arg(char *arg);
 
 shellcmd xsh_prodcons(int nargs, char *args[])
 {
-  n = 0;
-  int count = 2000;
-  bool use_futures = FALSE;
+    n = 0;
+    int count = 2000;
+    bool use_futures = FALSE;
 
-  if (nargs > 3) {
-    printf(
-      "ERROR: Wrong number of arguments given. Expected 2, 1 or 0, found %d.\n"
-      "USAGE: prodcons COUNT\n", nargs - 1);
-    return 1;
-  }
+    if (nargs > 3)
+    {
+        printf(
+                "ERROR: Wrong number of arguments given. Expected 2, 1 or 0, found %d.\n"
+                "USAGE: prodcons COUNT\n", nargs - 1);
+        return 1;
+    }
 
-  use_futures = search_dash_f(args);
-  count = search_count_arg(args, count);
+    use_futures = search_dash_f(args);
+    count = search_count_arg(args, count);
 
-  printf("use_futures: %d\n", use_futures);
-  printf("count: %d\n", count);
+    printf("use_futures: %d\n", use_futures);
+    printf("count: %d\n", count);
 
-  if (use_futures == FALSE) {
-    /* run as before */
-    consumed = semcreate(0);
-    produced = semcreate(1);
+    if (use_futures == FALSE)
+    {
+        /* run as before */
+        consumed = semcreate(0);
+        produced = semcreate(1);
 
-    tid_typ producer_th = create(producer, 1024, 20, "producer", 1, count);
-    tid_typ consumer_th = create(consumer, 1024, 20, "consumer", 1, count);
+        tid_typ producer_th = create(producer, 1024, 20, "producer", 1, count);
+        tid_typ consumer_th = create(consumer, 1024, 20, "consumer", 1, count);
 
-    resume(consumer_th);
-    resume(producer_th);
-  } else {
-    /* run program that uses futures */
-    future *f1, *f2, *f3;
+        resume(consumer_th);
+        resume(producer_th);
+    }
+    else
+    {
+        /* run program that uses futures */
+        future *f1, *f2, *f3;
 
-    f1 = future_alloc(FUTURE_EXCLUSIVE);
-    f2 = future_alloc(FUTURE_EXCLUSIVE);
-    f3 = future_alloc(FUTURE_EXCLUSIVE);
+        f1 = future_alloc(FUTURE_EXCLUSIVE);
+        f2 = future_alloc(FUTURE_EXCLUSIVE);
+        f3 = future_alloc(FUTURE_EXCLUSIVE);
 
-    /* semaphore for printing */
-    semaphore print_sem = semcreate(1);
+        /* semaphore for printing */
+        semaphore print_sem = semcreate(1);
 
-    /* semaphores to wait on thrads */
-    semaphore t1_running = semcreate(0);
-    semaphore t2_running = semcreate(0);
-    semaphore t3_running = semcreate(0);
+        /* semaphores to wait on thrads */
+        semaphore running = semcreate(0);
 
-    resume( create(future_cons, 1024, 20, "fcons1", 3, f1, print_sem, t1_running) );
-    resume( create(future_prod, 1024, 20, "fprod1", 2, f1, print_sem) );
-    resume( create(future_cons, 1024, 20, "fcons2", 3, f2, print_sem, t2_running) );
-    resume( create(future_prod, 1024, 20, "fprod2", 2, f2, print_sem) );
-    resume( create(future_cons, 1024, 20, "fcons3", 3, f3, print_sem, t3_running) );
-    resume( create(future_prod, 1024, 20, "fprod3", 2, f3, print_sem) );
+        resume( create(future_cons, 1024, 20, "fcons1", 3, f1, print_sem, running) );
+        resume( create(future_prod, 1024, 20, "fprod1", 2, f1, print_sem) );
+        resume( create(future_cons, 1024, 20, "fcons2", 3, f2, print_sem, running) );
+        resume( create(future_prod, 1024, 20, "fprod2", 2, f2, print_sem) );
+        resume( create(future_cons, 1024, 20, "fcons3", 3, f3, print_sem, running) );
+        resume( create(future_prod, 1024, 20, "fprod3", 2, f3, print_sem) );
 
-    /* wait until all thrads are done */
-    wait(t1_running);
-    wait(t2_running);
-    wait(t3_running);
+        /* wait until all thrads are done */
+        wait(running);
+        wait(running);
+        wait(running);
 
-    /* threads are done, free the semaphores and futures */
-    semfree(print_sem);
-    semfree(t1_running);
-    semfree(t2_running);
-    semfree(t3_running);
-    future_free(f1);
-    future_free(f2);
-    future_free(f3);
-  }
+        /* threads are done, free the semaphores and futures */
+        semfree(print_sem);
+        semfree(running);
+        future_free(f1);
+        future_free(f2);
+        future_free(f3);
+    }
 
-  return 0;
+    return 0;
 }
 
 bool search_dash_f(char *args[])
 {
-  char dash_f[] = "-f";
-  int i = 0;
-  while (args[i] != NULL) {
-    char *arg = args[i];
-    if (strcmp(arg, dash_f) == 0) return TRUE;
-    i++;
-  }
-  return FALSE;
+    char dash_f[] = "-f";
+    int i = 0;
+    while (args[i] != NULL)
+    {
+        char *arg = args[i];
+        if (strcmp(arg, dash_f) == 0) return TRUE;
+        i++;
+    }
+    return FALSE;
 }
 
 int search_count_arg(char *args[], int def)
 {
-  int i = 0;
-  while (args[i] != NULL) {
-    char *arg = args[i];
-    if (validate_arg(arg) == TRUE) {
-      return atoi(arg);
+    int i = 0;
+    while (args[i] != NULL)
+    {
+        char *arg = args[i];
+        if (validate_arg(arg) == TRUE)
+        {
+            return atoi(arg);
+        }
+        i++;
     }
-    i++;
-  }
-  return def;
+    return def;
 }
 
 bool validate_arg(char *arg)
 {
-  int i = 0;
-  while (arg[i] != '\0') {
-    if (!(arg[i] >= '0' && arg[i] <= '9')) {
-      return FALSE;
+    int i = 0;
+    while (arg[i] != '\0')
+    {
+        if (!(arg[i] >= '0' && arg[i] <= '9'))
+        {
+            return FALSE;
+        }
+        i++;
     }
-    i++;
-  }
-  return TRUE;
+    return TRUE;
 }

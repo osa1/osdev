@@ -14,16 +14,16 @@
 
 typedef struct futent
 {
-   int *value;
-   int flag;
-   int state;
-   tid_typ tid;
+    int *value;
+    int flag;
+    int state;
+    tid_typ tid;
 
-   /* `s` is used to atomically compare-and-swap the state */
-   semaphore s;
+    /* `s` is used to atomically compare-and-swap the state */
+    semaphore s;
 
-   /* `produced` is used to block until value field is filled */
-   semaphore produced;
+    /* `produced` is used to block until value field is filled */
+    semaphore produced;
 } future;
 
 /* Interface for system call */
