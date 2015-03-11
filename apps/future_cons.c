@@ -3,6 +3,9 @@
 syscall future_cons(future *fut, semaphore print_sem, semaphore running)
 {
     int i;
+    wait(print_sem);
+    printf("trying to get the future.\n");
+    signal(print_sem);
     if (future_get(fut, &i) != OK)
     {
         wait(print_sem);

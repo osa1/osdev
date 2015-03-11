@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 #include <thread.h>
+#include <queue.h>
 
 /* future states */
 #define FUTURE_EMPTY	  0
@@ -10,7 +11,9 @@
 #define FUTURE_VALID 	  2
 
 /* modes of operation for future */
-#define FUTURE_EXCLUSIVE  1
+#define FUTURE_EXCLUSIVE  0
+#define FUTURE_SHARED     1
+#define FUTURE_QUEUE      2
 
 typedef struct futent
 {
@@ -21,9 +24,8 @@ typedef struct futent
     /* `s` is used to atomically compare-and-swap the state */
     semaphore s;
 
-    /* a semaphore is essentially a queue for threads */
-    semaphore set_queue;
-    semaphore get_queue;
+    qid_typ set_queue;
+    qid_typ get_queue;
 } future;
 
 /* Interface for system call */

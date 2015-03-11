@@ -16,8 +16,8 @@ future *future_alloc(int future_flags)
     f->s = semcreate(1);
 
     /* initially queues are empty */
-    f->set_queue = semcreate(0);
-    f->get_queue = semcreate(0);
+    f->set_queue = queinit();
+    f->get_queue = queinit();
 
     return f;
 }

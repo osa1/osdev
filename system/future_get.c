@@ -1,63 +1,54 @@
 #include <future.h>
 
+syscall get_exclusive (future*, int*);
+syscall get_shared    (future*, int*);
+syscall get_queue     (future*, int*);
+
 syscall future_get(future *f, int *i)
 {
-    irqmask im;
-    /* we're going to read future state, lock it */
     wait(f->s);
-    im = disable();
-
-    if (f->state == FUTURE_EMPTY)
+    switch (f->flag)
     {
-        /* update the state, add yourself to `get_queue` */
-        f->state = FUTURE_WAITING;
-        signal(f->s);
-        restore(im);
-        wait(f->get_queue);
-
-        wait(f->s);
-        im = disable();
-        /* at this point we know the value is filled, and state should be set
-         * to FUTURE_VALID. still run a sanity check. */
-        if (f->state != FUTURE_VALID)
-        {
-            /* probably a bug in future_set or future_get or a race condition */
+        case FUTURE_EXCLUSIVE:
+            return get_exclusive(f, i);
+        case FUTURE_SHARED:
+            return get_shared(f, i);
+        case FUTURE_QUEUE:
+            return get_queue(f, i);
+        default:
             signal(f->s);
-            restore(im);
             return SYSERR;
-        }
-
-        /* update the state and read the value */
-        f->state = FUTURE_EMPTY;
-        *i = *(f->value);
-        signal(f->s);
-        restore(im);
-
-        return OK;
-
     }
-    else if (f->state == FUTURE_WAITING)
-    {
-        signal(f->s);
-        restore(im);
-        return SYSERR;
+}
 
-    }
-    else if (f->state == FUTURE_VALID)
+syscall get_exclusive(future *f, int *i)
+{
+    if (f->state == FUTURE_VALID)
     {
-        /* update the state and read the value */
-        f->state = FUTURE_EMPTY;
         *i = *(f->value);
+        f->state = isempty(f->get_queue) ? FUTURE_WAITING : FUTURE_EMPTY;
         signal(f->s);
-        restore(im);
-
         return OK;
     }
     else
     {
+        f->state = FUTURE_WAITING;
+        enqueue(thrcurrent, f->get_queue);
+        thrtab[thrcurrent].state = THRWAIT;
         signal(f->s);
-        restore(im);
-        /* impossible or unhandled case */
-        return SYSERR;
+        yield();
+        return future_get(f, i);
     }
+}
+
+syscall get_shared(future *f, int *i)
+{
+    signal(f->s);
+    return SYSERR;
+}
+
+syscall get_queue(future *f, int *i)
+{
+    signal(f->s);
+    return SYSERR;
 }

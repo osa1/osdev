@@ -1,33 +1,59 @@
 #include <future.h>
 
+syscall set_exclusive (future*, int*);
+syscall set_shared    (future*, int*);
+syscall set_queue     (future*, int*);
+
 syscall future_set(future *f, int *i)
 {
-    irqmask im;
-    int current_state;
     wait(f->s);
-    im = disable();
-    current_state = f->state;
-    if (current_state == FUTURE_EMPTY || current_state == FUTURE_WAITING)
+    switch (f->flag)
     {
-        f->state = FUTURE_VALID;
-        f->value = i;
-        /* we're done updating the state, release the state lock */
-        signal(f->s);
-        if (current_state == FUTURE_WAITING)
-        {
-            /* there were blocked threads. signal all the threads. new threads
-             * will check `state`, and read the value instead of adding
-             * themselves to the `get_queue` */
-            signaln(f->get_queue, NTHREAD);
-        }
-        restore(im);
-        return OK;
+        case FUTURE_EXCLUSIVE:
+            return set_exclusive(f, i);
+        case FUTURE_SHARED:
+            return set_shared(f, i);
+        case FUTURE_QUEUE:
+            return set_queue(f, i);
+        default:
+            signal(f->s);
+            return SYSERR;
     }
-    else
+}
+
+syscall set_exclusive(future *f, int *i)
+{
+    /* We only use `get_queue` in exclusive mode. Setters are never blocked,
+     * they either get a SYSERR(when they try to set an already set future) or
+     * OK(when they set an empty future). */
+    if (f->state == FUTURE_VALID)
     {
-        /* future is already filled, can't squash the current value */
         signal(f->s);
-        restore(im);
         return SYSERR;
     }
+
+    f->value = i;
+
+    /* signal the getter, if there is one */
+    if (f->state == FUTURE_WAITING)
+    {
+        ready(dequeue(f->get_queue), FALSE);
+    }
+
+    f->state = FUTURE_VALID;
+    signal(f->s);
+    yield();
+    return OK;
+}
+
+syscall set_shared(future *f, int *i)
+{
+    signal(f->s);
+    return SYSERR;
+}
+
+syscall set_queue(future *f, int *i)
+{
+    signal(f->s);
+    return SYSERR;
 }
