@@ -9,9 +9,7 @@ syscall future_prod(future *fut, semaphore print_sem, semaphore running)
     {
         *j += i;
     }
-    wait(print_sem);
-    printf("setting the future: %d\n", (*j));
-    signal(print_sem);
+    printflock(print_sem, "setting the future: %d\n", (*j));
     int ret = future_set(fut, j);
     signal(running);
     return ret;

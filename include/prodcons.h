@@ -3,6 +3,13 @@
 #include <stdio.h>
 #include <thread.h>
 
+#define printflock(lock, ...)   \
+    do {                        \
+        wait(lock);             \
+        printf(__VA_ARGS__);    \
+        signal(lock);           \
+    } while (0)
+
 extern int n;
 
 extern semaphore consumed, produced;
