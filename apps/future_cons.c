@@ -11,6 +11,7 @@ syscall future_cons(future *fut, semaphore print_sem, semaphore running)
         wait(print_sem);
         printf("future_get failed\n");
         signal(print_sem);
+        signal(running);
         return -1;
     }
     wait(print_sem);

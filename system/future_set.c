@@ -48,6 +48,26 @@ syscall set_exclusive(future *f, int *i)
 
 syscall set_shared(future *f, int *i)
 {
+    /* FUTURE_SHARED is read-once. */
+    if (f->state == FUTURE_VALID)
+    {
+        signal(f->s);
+        return SYSERR;
+    }
+
+    f->value = i;
+
+    /* signal all the getters */
+    if (f->state == FUTURE_WAITING)
+    {
+        tid_typ t;
+        while ((t = dequeue(f->get_queue)) != EMPTY)
+        {
+            ready(t, FALSE);
+        }
+    }
+
+    f->state = FUTURE_VALID;
     signal(f->s);
     return SYSERR;
 }

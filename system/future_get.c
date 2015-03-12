@@ -43,8 +43,21 @@ syscall get_exclusive(future *f, int *i)
 
 syscall get_shared(future *f, int *i)
 {
-    signal(f->s);
-    return SYSERR;
+    if (f->state == FUTURE_VALID)
+    {
+        *i = *(f->value);
+        signal(f->s);
+        return OK;
+    }
+    else
+    {
+        f->state = FUTURE_WAITING;
+        enqueue(thrcurrent, f->get_queue);
+        thrtab[thrcurrent].state = THRWAIT;
+        signal(f->s);
+        yield();
+        return future_get(f, i);
+    }
 }
 
 syscall get_queue(future *f, int *i)

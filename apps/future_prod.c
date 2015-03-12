@@ -1,6 +1,6 @@
 #include <prodcons.h>
 
-syscall future_prod(future *fut, semaphore print_sem)
+syscall future_prod(future *fut, semaphore print_sem, semaphore running)
 {
     int *j = (int*) memget(sizeof(int));
     int i;
@@ -12,5 +12,7 @@ syscall future_prod(future *fut, semaphore print_sem)
     wait(print_sem);
     printf("setting the future: %d\n", (*j));
     signal(print_sem);
-    return future_set(fut, j);
+    int ret = future_set(fut, j);
+    signal(running);
+    return ret;
 }

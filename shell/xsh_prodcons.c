@@ -66,29 +66,29 @@ shellcmd xsh_prodcons(int nargs, char *args[])
         f_queue = future_alloc(FUTURE_QUEUE);
         int i;
 
-        printf("testing FUTURE_EXCLUSIVE\n");
-        resume( create(future_cons, 1024, 20, "fcons1", 1, f_exclusive, print_sem, running) );
-        resume( create(future_prod, 1024, 20, "fprod1", 1, f_exclusive, print_sem, running) );
+        printf("\ntesting FUTURE_EXCLUSIVE\n");
+        resume(create(future_cons, 1024, 20, "fcons1", 3, f_exclusive, print_sem, running));
+        resume(create(future_prod, 1024, 20, "fprod1", 3, f_exclusive, print_sem, running));
         wait(running); wait(running);
 
-        printf("testing FUTURE_SHARED\n");
-        resume( create(future_cons, 1024, 20, "fcons2", 1, f_shared, print_sem, running) );
-        resume( create(future_cons, 1024, 20, "fcons3", 1, f_shared, print_sem, running) );
-        resume( create(future_cons, 1024, 20, "fcons4", 1, f_shared, print_sem, running) );
-        resume( create(future_cons, 1024, 20, "fcons5", 1, f_shared, print_sem, running) );
-        resume( create(future_prod, 1024, 20, "fprod2", 1, f_shared, print_sem, running) );
+        printf("\ntesting FUTURE_SHARED\n");
+        resume(create(future_cons, 1024, 20, "fcons2", 3, f_shared, print_sem, running));
+        resume(create(future_cons, 1024, 20, "fcons3", 3, f_shared, print_sem, running));
+        resume(create(future_cons, 1024, 20, "fcons4", 3, f_shared, print_sem, running));
+        resume(create(future_cons, 1024, 20, "fcons5", 3, f_shared, print_sem, running));
+        resume(create(future_prod, 1024, 20, "fprod2", 3, f_shared, print_sem, running));
         for (i = 0; i < 5; ++i) wait(running);
 
-        printf("testing FUTURE_QUEUE\n");
-        resume( create(future_cons, 1024, 20, "fcons6", 1, f_queue, print_sem, running) );
-        resume( create(future_cons, 1024, 20, "fcons7", 1, f_queue, print_sem, running) );
-        resume( create(future_cons, 1024, 20, "fcons7", 1, f_queue, print_sem, running) );
-        resume( create(future_cons, 1024, 20, "fcons7", 1, f_queue, print_sem, running) );
-        resume( create(future_prod, 1024, 20, "fprod3", 1, f_queue, print_sem, running) );
-        resume( create(future_prod, 1024, 20, "fprod4", 1, f_queue, print_sem, running) );
-        resume( create(future_prod, 1024, 20, "fprod5", 1, f_queue, print_sem, running) );
-        resume( create(future_prod, 1024, 20, "fprod6", 1, f_queue, print_sem, running) );
-        for (i = 0; i < 8; ++i) wait(running);
+        // printf("testing FUTURE_QUEUE\n");
+        // resume(create(future_cons, 1024, 20, "fcons6", 1, f_queue, print_sem, running));
+        // resume(create(future_cons, 1024, 20, "fcons7", 1, f_queue, print_sem, running));
+        // resume(create(future_cons, 1024, 20, "fcons7", 1, f_queue, print_sem, running));
+        // resume(create(future_cons, 1024, 20, "fcons7", 1, f_queue, print_sem, running));
+        // resume(create(future_prod, 1024, 20, "fprod3", 1, f_queue, print_sem, running));
+        // resume(create(future_prod, 1024, 20, "fprod4", 1, f_queue, print_sem, running));
+        // resume(create(future_prod, 1024, 20, "fprod5", 1, f_queue, print_sem, running));
+        // resume(create(future_prod, 1024, 20, "fprod6", 1, f_queue, print_sem, running));
+        // for (i = 0; i < 8; ++i) wait(running);
 
         /* threads are done, free the semaphores and futures */
         semfree(print_sem);
