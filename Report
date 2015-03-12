@@ -1,3 +1,90 @@
+# Report for Assignment 5
+
+I don't have any group members.
+
+I made multiple commits for this assignment, you can see all of them combined here:
+
+https://github.iu.edu/oagacan/exinu/compare/eceedfe...b6b3f88
+
+I also changed tests a bit to make observing FIFO property easier. (it's very tricky to get right)
+
+Here's an example output:
+
+  testing FUTURE_EXCLUSIVE
+  consumer 4 trying to get the future.
+  setting the future: 134651692
+  set!
+  consumer 4 consumed 134651692
+
+  testing FUTURE_SHARED
+  consumer 6 trying to get the future.
+  consumer 7 trying to get the future.
+  consumer 8 trying to get the future.
+  consumer 9 trying to get the future.
+  setting the future: 134651692
+  set!
+  consumer 6 consumed 134651692
+  consumer 7 consumed 134651692
+  consumer 8 consumed 134651692
+  consumer 9 consumed 134651692
+
+  testing FUTURE_QUEUE
+  consumer 11 trying to get the future.
+  consumer 12 trying to get the future.
+  consumer 13 trying to get the future.
+  consumer 14 trying to get the future.
+  setting the future: 134651692
+  consumer 11 consumed 134651692
+  set!
+  setting the future: 134651692
+  consumer 12 consumed 134651692
+  set!
+  setting the future: 134651692
+  consumer 13 consumed 134651692
+  set!
+  setting the future: 134651692
+  consumer 14 consumed 134651692
+  set!
+
+  testing FUTURE_QUEUE (in different order)
+  setting the future: 134651692
+  set!
+  consumer 20 trying to get the future.
+  consumer 20 consumed 134651692
+  setting the future: 134651692
+  set!
+  consumer 22 trying to get the future.
+  consumer 22 consumed 134651692
+  consumer 23 trying to get the future.
+  setting the future: 134651692
+  consumer 23 consumed 134651692
+  set!
+  setting the future: 134651692
+  set!
+  consumer 26 trying to get the future.
+  consumer 26 consumed 134651692
+
+  testing FUTURE_QUEUE (in different order)
+  consumer 27 trying to get the future.
+  setting the future: 134651692
+  consumer 27 consumed 134651692
+  set!
+  consumer 29 trying to get the future.
+  setting the future: 134651692
+  setting the future: 134651692
+  consumer 29 consumed 134651692
+  set!
+  consumer 32 trying to get the future.
+  consumer 33 trying to get the future.
+  consumer 32 consumed 134651692
+  set!
+  setting the future: 134651692
+  consumer 33 consumed 134651692
+  set!
+  xsh$ QEMU: Terminated
+
+It's easy to observe that consumers have FIFO property in all cases.
+
 # Report for Assignment 4
 
 No group members - I'm going solo.
