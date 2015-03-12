@@ -21,6 +21,10 @@ typedef struct futent
     int flag;
     int state;
 
+	/* id of the thread that's supposed to read the value. this is important to
+	 * prevent race conditions while reading the value */
+	tid_typ tid;
+
     /* `s` is used to atomically compare-and-swap the state */
     semaphore s;
 

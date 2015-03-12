@@ -11,6 +11,7 @@ future *future_alloc(int future_flags)
     f->value = NULL;
     f->flag = future_flags;
     f->state = FUTURE_EMPTY;
+    f->tid = -1;
 
     /* initially we're allowing threads to read and write `state` field */
     f->s = semcreate(1);

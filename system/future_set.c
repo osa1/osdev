@@ -33,11 +33,14 @@ syscall set_exclusive(future *f, int *i)
     }
 
     *(f->value) = *i;
+    f->tid = EMPTY; /* first come can read */
 
     /* signal the getter, if there is one */
     if (f->state == FUTURE_WAITING)
     {
-        ready(dequeue(f->get_queue), FALSE);
+        tid_typ t = dequeue(f->get_queue);
+        f->tid = t;
+        ready(t, FALSE);
     }
 
     f->state = FUTURE_VALID;
@@ -47,7 +50,8 @@ syscall set_exclusive(future *f, int *i)
 
 syscall set_shared(future *f, int *i)
 {
-    /* FUTURE_SHARED is read-once. */
+    /* FUTURE_SHARED is set-once. we don't need to keep the tid field updated
+     * because anyone can read once the future is filled */
     if (f->state == FUTURE_VALID)
     {
         signal(f->s);
@@ -78,25 +82,26 @@ syscall set_queue(future *f, int *i)
         /* we have a value waiting to be read, add ourself to the setter queue */
         enqueue(thrcurrent, f->set_queue);
         thrtab[thrcurrent].state = THRWAIT;
-        ready(dequeue(f->get_queue), FALSE);
         signal(f->s);
         yield();
         return future_set(f, i);
     }
     else if (f->state == FUTURE_WAITING)
     {
-        /* there is at least one thread waiting in get_queue, set the value and
-         * signal the thread */
         *(f->value) = *i;
-        ready(dequeue(f->get_queue), FALSE);
         f->state = FUTURE_VALID;
+        ready(dequeue(f->get_queue), FALSE);
         signal(f->s);
+        yield();
         return OK;
     }
     else /* FUTURE_EMPTY */
     {
         *(f->value) = *i;
         f->state = FUTURE_VALID;
+        tid_typ t = dequeue(f->get_queue);
+        f->tid = t;
+        ready(t, FALSE);
         signal(f->s);
         return OK;
     }

@@ -11,6 +11,7 @@ syscall future_prod(future *fut, semaphore print_sem, semaphore running)
     }
     printflock(print_sem, "setting the future: %d\n", (*j));
     int ret = future_set(fut, j);
+    printflock(print_sem, "set!\n");
     signal(running);
     return ret;
 }
