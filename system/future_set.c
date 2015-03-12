@@ -32,7 +32,7 @@ syscall set_exclusive(future *f, int *i)
         return SYSERR;
     }
 
-    f->value = i;
+    *(f->value) = *i;
 
     /* signal the getter, if there is one */
     if (f->state == FUTURE_WAITING)
@@ -42,7 +42,6 @@ syscall set_exclusive(future *f, int *i)
 
     f->state = FUTURE_VALID;
     signal(f->s);
-    yield();
     return OK;
 }
 
@@ -55,7 +54,7 @@ syscall set_shared(future *f, int *i)
         return SYSERR;
     }
 
-    f->value = i;
+    *(f->value) = *i;
 
     /* signal all the getters */
     if (f->state == FUTURE_WAITING)
@@ -69,11 +68,35 @@ syscall set_shared(future *f, int *i)
 
     f->state = FUTURE_VALID;
     signal(f->s);
-    return SYSERR;
+    return OK;
 }
 
 syscall set_queue(future *f, int *i)
 {
-    signal(f->s);
-    return SYSERR;
+    if (f->state == FUTURE_VALID)
+    {
+        /* we have a value waiting to be read, add ourself to the setter queue */
+        enqueue(thrcurrent, f->set_queue);
+        thrtab[thrcurrent].state = THRWAIT;
+        signal(f->s);
+        yield();
+        return future_set(f, i);
+    }
+    else if (f->state == FUTURE_WAITING)
+    {
+        /* there is at least one thread waiting in get_queue, set the value and
+         * signal the thread */
+        *(f->value) = *i;
+        ready(dequeue(f->get_queue), FALSE);
+        f->state = FUTURE_VALID;
+        signal(f->s);
+        return OK;
+    }
+    else /* FUTURE_EMPTY */
+    {
+        *(f->value) = *i;
+        f->state = FUTURE_VALID;
+        signal(f->s);
+        return OK;
+    }
 }

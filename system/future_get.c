@@ -62,6 +62,21 @@ syscall get_shared(future *f, int *i)
 
 syscall get_queue(future *f, int *i)
 {
-    signal(f->s);
-    return SYSERR;
+    if (f->state == FUTURE_VALID)
+    {
+        *i = *(f->value);
+        f->state = isempty(f->get_queue) ? FUTURE_EMPTY : FUTURE_WAITING;
+        ready(dequeue(f->set_queue), FALSE);
+        signal(f->s);
+        return OK;
+    }
+    else
+    {
+        enqueue(thrcurrent, f->get_queue);
+        thrtab[thrcurrent].state = THRWAIT;
+        ready(dequeue(f->set_queue), FALSE);
+        signal(f->s);
+        yield();
+        return future_get(f, i);
+    }
 }
