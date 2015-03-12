@@ -78,6 +78,7 @@ syscall set_queue(future *f, int *i)
         /* we have a value waiting to be read, add ourself to the setter queue */
         enqueue(thrcurrent, f->set_queue);
         thrtab[thrcurrent].state = THRWAIT;
+        ready(dequeue(f->get_queue), FALSE);
         signal(f->s);
         yield();
         return future_set(f, i);
