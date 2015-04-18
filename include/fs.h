@@ -90,11 +90,7 @@ int get_directory_blocks(void);
 int get_block_size(void);
 int load_directory(int *blocks, directory *output);
 
-/*
-   Block Store functions
-   bread, bwrite,
-   bput, bget write entire blocks (macro with offset=0, len=blocksize)
-   */
+/* Block Store functions */
 int mkbsdev(int dev, int blocksize, int numblocks);
 int bread(int bsdev, int block, int offset, void *buf, int len);
 int bwrite(int bsdev, int block, int offset, void * buf, int len);
