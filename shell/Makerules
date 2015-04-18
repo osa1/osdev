@@ -55,6 +55,9 @@ C_FILES += xsh_hello.c
 # Assignment 2
 C_FILES += xsh_prodcons.c
 
+# Assignment 6
+C_FILES += xsh_fstest.c
+
 S_FILES =
 
 # Add the files to the compile source path

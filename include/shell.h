@@ -128,5 +128,6 @@ shellcmd xsh_voip(int, char *[]);
 shellcmd xsh_xweb(int, char *[]);
 shellcmd xsh_hello(int, char *[]);
 shellcmd xsh_prodcons(int, char *[]);
+shellcmd xsh_fstest(int, char *[]);
 
 #endif                          /* _SHELL_H_ */

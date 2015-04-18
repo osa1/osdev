@@ -41,6 +41,9 @@ C_FILES += tar.c
 # Assignment 4
 C_FILES += future_alloc.c future_free.c future_set.c future_get.c
 
+# Assignment 6
+C_FILES += bs.c fs.c
+
 # Add the files to the compile source path
 DIR = ${TOPDIR}/${COMP}
 COMP_SRC += ${C_FILES:%=${DIR}/%}
