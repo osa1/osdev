@@ -34,6 +34,8 @@ int mkbsdev(int dev, int blocksize, int numblocks)
     return OK;
 }
 
+// TODO: NB: This is broken, you can read multiple blocks at once by keeping
+//           len big. The problem is, you can't know what's in next block.
 int bread(int dev, int block, int offset, void *buf, int len)
 {
     char *bbase;

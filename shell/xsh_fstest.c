@@ -49,16 +49,28 @@ shellcmd xsh_fstest(int nargs, char *args[])
     }
 
 #ifdef FS
+    printf("filesystem initialized: %d\n", fs_initialized());
+
     /* device "0" and default blocksize (=0) and count */
     mkbsdev(0, MDEV_BLOCK_SIZE, MDEV_NUM_BLOCKS);
     mkfs(0, DEFAULT_NUM_INODES);
+    printf("filesystem initialized after mkfs: %d\n", fs_initialized());
+    printf("get_block_size() -> %d\n", get_block_size());
+    printf("get_directory_blocks() -> %d\n", get_directory_blocks());
+    print_directory(get_root_dir());
     testbitmask();
 
     buf1 = memget(SIZE*sizeof(char));
     buf2 = memget(SIZE*sizeof(char));
 
     // Create test file
-    fd = fcreate("Test_File", O_CREAT);
+    // NB: Fixing the useless argument here.
+    fd = fcreate("Test_File", INODE_TYPE_FILE);
+    if (fd < 0)
+    {
+        printf("fcreate failed. Aborting.\n");
+        return SYSERR;
+    }
 
     // Fill buffer with random stuff
     for(i=0; i<SIZE; i++)

@@ -13,7 +13,7 @@
 #define INODE_TYPE_FILE 1
 #define INODE_TYPE_DIR 2
 
-struct inode
+typedef struct
 {
     int id;
     short int type;
@@ -21,7 +21,7 @@ struct inode
     int device;
     int size;
     int blocks[INODEBLOCKS];
-};
+} inode;
 
 #define FSTATE_CLOSED 0
 #define FSTATE_OPEN 1
@@ -34,27 +34,28 @@ struct inode
 #define O_WRONLY 1
 #define O_RDWR   2
 
-struct filetable
+typedef struct
+{
+    int inode_num;
+    char name[FILENAMELEN + 1]; // NB: adding one here for null-termination
+} dirent;
+
+// NB: I think this is for open files. Make sure it is.
+typedef struct
 {
     int state;
     int fileptr;
-    struct dirent *de;
-    struct inode in;
-};
+    dirent *de;
+    inode in;
+} filetable;
 
-struct dirent
-{
-    int inode_num;
-    char name[FILENAMELEN];
-};
-
-struct directory
+typedef struct
 {
     int numentries;
-    struct dirent entry[DIRECTORY_SIZE];
-};
+    dirent entry[DIRECTORY_SIZE];
+} directory;
 
-struct fsystem
+typedef struct
 {
     int nblocks;
     int blocksz;
@@ -62,8 +63,8 @@ struct fsystem
     int inodes_used;
     int freemaskbytes;
     char *freemask;
-    struct directory root_dir;
-};
+    directory root_dir;
+} fsystem;
 
 /* file and directory functions */
 int fopen(char *filename, int flags);
@@ -78,11 +79,16 @@ int mkfs(int dev, int num_inodes);
 int mount(int dev);
 
 /* filesystem internal functions */
-int get_inode_by_num(int dev, int inode_number, struct inode *in);
-int put_inode_by_num(int dev, int inode_number, struct inode *in);
+int get_inode_by_num(int dev, int inode_number, inode *in);
+int put_inode_by_num(int dev, int inode_number, inode *in);
 int setmaskbit(int b);
 int clearmaskbit(int b);
 int getmaskbit(int b);
+int fs_initialized(void);
+directory *get_root_dir(void);
+int get_directory_blocks(void);
+int get_block_size(void);
+int load_directory(int *blocks, directory *output);
 
 /*
    Block Store functions
@@ -95,6 +101,11 @@ int bwrite(int bsdev, int block, int offset, void * buf, int len);
 
 /* debugging functions */
 void printfreemask(void);
-void print_fsd(void);
+// TODO: No implementation is provided, but I don't think this is required for
+//       the assignment
+// void print_fsd(void);
+
+void print_dirent(dirent*);
+void print_directory(directory*);
 
 #endif /* FS_H */
