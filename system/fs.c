@@ -71,11 +71,11 @@ int mkfs(int dev, int num_inodes)
 
     /* write the fsystem block to SB_BLK, mark block used */
     setmaskbit(SB_BLK);
-    bwrite(dev0, SB_BLK, 0, &fsd, sizeof(struct fsystem));
+    bwrite(0, SB_BLK, 0, &fsd, sizeof(struct fsystem));
 
     /* write the free block bitmask in BM_BLK, mark block used */
     setmaskbit(BM_BLK);
-    bwrite(dev0, BM_BLK, 0, fsd.freemask, fsd.freemaskbytes);
+    bwrite(0, BM_BLK, 0, fsd.freemask, fsd.freemaskbytes);
 
     return 1;
 }

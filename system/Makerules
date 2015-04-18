@@ -42,7 +42,7 @@ C_FILES += tar.c
 C_FILES += future_alloc.c future_free.c future_set.c future_get.c
 
 # Assignment 6
-C_FILES += bs.c fs.c
+C_FILES += bs.c fs.c fopen.c fcreate.c fwrite.c fseek.c fread.c fclose.c
 
 # Add the files to the compile source path
 DIR = ${TOPDIR}/${COMP}
