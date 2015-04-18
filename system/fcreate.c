@@ -73,7 +73,10 @@ int get_parent_directory(directory *cur_dir, char *path, directory *output)
     }
 }
 
-int get_file_inode(directory *cur_dir, char *filename, inode *output)
+/**
+ * NB: This also works for reading directory inodes.
+ */
+int get_file_inode(directory *cur_dir, char *filename, inode *output, int type)
 {
     // sanity check
     if (strchr(filename, '/') != NULL)
@@ -92,7 +95,11 @@ int get_file_inode(directory *cur_dir, char *filename, inode *output)
             {
                 return SYSERR;
             }
-            return OK;
+
+            if (output->type == type)
+            {
+                return OK;
+            }
         }
     }
 
@@ -100,7 +107,7 @@ int get_file_inode(directory *cur_dir, char *filename, inode *output)
     return SYSERR;
 }
 
-int fcreate(char *path, int mode)
+int fcreate(char *path, fcreate_mode mode)
 {
     if (!fs_initialized())
     {
@@ -128,13 +135,26 @@ int fcreate(char *path, int mode)
     else
         filename++; // skip '/'
 
-    inode file_inode;
-    if (get_file_inode(&dir, filename, &file_inode) != SYSERR)
+    inode fd_inode;
+    if (mode == INODE_TYPE_FILE
+            && get_file_inode(&dir, filename, &fd_inode, INODE_TYPE_FILE) != SYSERR)
     {
         printf("fcreate: File already exists.\n");
         return SYSERR;
     }
+    else if (get_file_inode(&dir, filename, &fd_inode, INODE_TYPE_DIR) != SYSERR)
+    {
+        printf("fcreate: Directory already exists.\n");
+        return SYSERR;
+    }
 
+    // Allocate INode for the file/directory
+    // int inode_block = allocate_block();
+    // if (inode_block == SYSERR)
+    // {
+    //     printf("fcreate: Can't allocate block.\n");
+    //     return SYSERR;
+    // }
 
     return SYSERR;
 }

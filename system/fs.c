@@ -14,14 +14,18 @@ char *dev0_blocks;
 
 char block_cache[512];
 
-#define SB_BLK 0
-#define BM_BLK 1
-#define RT_BLK 2
-
 #define NUM_FD 16
 filetable oft[NUM_FD];
 int next_open_fd = 0;
 
+// number of blocks that fsystem struct uses
+int fsystem_blocks;
+
+// number of blocks freemask uses
+int freemask_blocks;
+
+// number of blocks inode_bitfield uses
+int inode_bitfield_blocks;
 
 #define INODES_PER_BLOCK (fsd.blocksz / sizeof(inode))
 #define NUM_INODE_BLOCKS                            \
@@ -56,26 +60,75 @@ int mkfs(int dev, int num_inodes)
     fsd.freemaskbytes = i / 8;
 
     if ((fsd.freemask = memget(fsd.freemaskbytes)) == (void *)SYSERR) {
-        printf("mkfs memget failed.\n");
+        printf("mkfs memget failed. (allocating freemaskbytes)\n");
         return SYSERR;
     }
-
-    /* zero the free mask */
-    for(i=0;i<fsd.freemaskbytes;i++) {
-        fsd.freemask[i] = '\0';
-    }
+    memset(fsd.freemask, 0, fsd.freemaskbytes);
 
     fsd.inodes_used = 0;
+    i = fsd.ninodes;
+    while ( (i % 8) != 0 ) {i++;}
+    if ((fsd.inode_bitfield = memget(i / 8)) == (void*)SYSERR) {
+        printf("mkfs memget failed. (allocating inode bitfield)\n");
+        return SYSERR;
+    }
+    memset(fsd.inode_bitfield, 0, i / 8);
 
-    /* write the fsystem block to SB_BLK, mark block used */
-    setmaskbit(SB_BLK);
-    bwrite(0, SB_BLK, 0, &fsd, sizeof(fsystem));
+    fsystem_blocks = offset_block_num(sizeof(fsystem));
+    freemask_blocks = offset_block_num(fsd.freemaskbytes);
+    inode_bitfield_blocks = offset_block_num(i / 8);
 
-    /* write the free block bitmask in BM_BLK, mark block used */
-    setmaskbit(BM_BLK);
-    bwrite(0, BM_BLK, 0, fsd.freemask, fsd.freemaskbytes);
+    printf("Writing initial blocks to the drive.\n"
+           "fsystem:\t%d blocks\nfreemask:\t%d blocks\ninode bitfield:\t%d blocks\n",
+           fsystem_blocks, freemask_blocks, inode_bitfield_blocks);
 
-    return 1;
+    // Write fsystem to the drive
+    for (i = 0; i < fsystem_blocks; i++)
+    {
+        int len = dev0_blocksize;
+        if (i == fsystem_blocks - 1)
+            len = sizeof(fsystem) % dev0_blocksize;
+
+        if (bwrite(0, 0 + i, 0, ((void*)&fsd) + i * dev0_blocksize, len) == SYSERR)
+        {
+            printf("mkfs: Can't write fsystem to block %d.\n", i);
+            return SYSERR;
+        }
+    }
+
+    // Write freemask to the drive
+    for (i = 0; i < freemask_blocks; i++)
+    {
+        int len = dev0_blocksize;
+        if (i == freemask_blocks - 1)
+            len = sizeof(fsystem) % dev0_blocksize;
+
+        if (bwrite(0, fsystem_blocks + i,
+                    0, ((void*)&fsd.freemask) + i * dev0_blocksize, len) == SYSERR)
+        {
+            printf("mkfs: Can't write freemask to block %d.\n",
+                    fsystem_blocks + i);
+            return SYSERR;
+        }
+    }
+
+    // Write inode_bitfield to the drive
+    for (i = 0; i < inode_bitfield_blocks; i++)
+    {
+        int len = dev0_blocksize;
+        if (i == inode_bitfield_blocks - 1)
+            len = sizeof(fsystem) % dev0_blocksize;
+
+        if (bwrite(0, fsystem_blocks + freemask_blocks + i,
+                    0, ((void*)&fsd.inode_bitfield) + i * dev0_blocksize, len) == SYSERR)
+        {
+            printf("mkfs: Can't write inode_bitfield to block %d.\n",
+                    fsystem_blocks + freemask_blocks + i);
+            return SYSERR;
+        }
+    }
+
+    return OK;
 }
 
 int fileblock_to_diskblock(int dev, int fd, int fileblock)
@@ -98,7 +151,7 @@ int get_inode_by_num(int dev, int inode_number, inode *in)
         printf("Unsupported device\n");
         return SYSERR;
     }
-    if (inode_number > fsd.ninodes) {
+    if (inode_number >= fsd.ninodes) {
         printf("get_inode_by_num: inode %d out of range\n", inode_number);
         return SYSERR;
     }
@@ -109,12 +162,7 @@ int get_inode_by_num(int dev, int inode_number, inode *in)
 
     inode_off = inn * sizeof(inode);
 
-    /*
-       printf("in_no: %d = %d/%d\n", inode_number, bl, inn);
-       printf("inn*sizeof(inode): %d\n", inode_off);
-       */
-
-    bread(0, bl, 0, &block_cache[0], fsd.blocksz);
+    bread(0, bl, 0, block_cache, fsd.blocksz);
     memcpy(in, &block_cache[inode_off], sizeof(inode));
 
     return OK;

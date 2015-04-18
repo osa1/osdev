@@ -40,7 +40,7 @@ int bread(int dev, int block, int offset, void *buf, int len)
 
     if (dev != 0)
     {
-        printf("Unsupported device\n");
+        printf("bread: Unsupported device.\n");
         return SYSERR;
     }
 
@@ -53,7 +53,7 @@ int bread(int dev, int block, int offset, void *buf, int len)
 
     if (offset >= dev0_blocksize)
     {
-        printf("Bad offset\n");
+        printf("bread: Bad offset.\n");
         return SYSERR;
     }
 
@@ -70,7 +70,7 @@ int bwrite(int dev, int block, int offset, void *buf, int len)
 
     if (dev != 0)
     {
-        printf("Unsupported device\n");
+        printf("bwrite: Unsupported device.\n");
         return SYSERR;
     }
 
@@ -83,13 +83,23 @@ int bwrite(int dev, int block, int offset, void *buf, int len)
 
     if (offset >= dev0_blocksize)
     {
-        printf("Bad offset\n");
+        printf("bwrite: Bad offset.\n");
         return SYSERR;
     }
 
     bbase = &dev0_blocks[block * dev0_blocksize];
     memcpy(bbase + offset, buf, len);
     return OK;
+}
+
+/**
+ * Return corresponding block index for given address.
+ */
+int offset_block_num(int offset)
+{
+    int i = offset / dev0_numblocks;
+    if (offset % dev0_numblocks != 0) i++;
+    return i;
 }
 
 #endif /* FS */

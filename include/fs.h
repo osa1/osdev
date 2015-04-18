@@ -3,7 +3,6 @@
 
 #define FILENAMELEN 32
 #define INODEBLOCKS 12
-#define INODEDIRECTBLOCKS (INODEBLOCKS - 2)
 #define DIRECTORY_SIZE 16
 
 #define MDEV_BLOCK_SIZE 512
@@ -15,21 +14,14 @@
 
 typedef struct
 {
-    int id;
-    short int type;
-    short int nlink;
-    int device;
-    int size;
-    int blocks[INODEBLOCKS];
+    short int type; // directory or file
+    int size; // file size
+    int blocks[INODEBLOCKS]; // block indexes
 } inode;
 
-#define FSTATE_CLOSED 0
-#define FSTATE_OPEN 1
+typedef enum { FCREATE_FILE, FCREATE_DIR } fcreate_mode;
 
-/* Modes of file*/
-#define O_CREAT 11
-
-/* Flags of file*/
+/* Flags for fopen */
 #define O_RDONLY 0
 #define O_WRONLY 1
 #define O_RDWR   2
@@ -61,6 +53,7 @@ typedef struct
     int blocksz;
     int ninodes;
     int inodes_used;
+    char *inode_bitfield;
     int freemaskbytes;
     char *freemask;
     directory root_dir;
@@ -69,14 +62,13 @@ typedef struct
 /* file and directory functions */
 int fopen(char *filename, int flags);
 int fclose(int fd);
-int fcreate(char *filename, int mode);
+int fcreate(char *filename, fcreate_mode mode);
 int fseek(int fd, int offset);
 int fread(int fd, void *buf, int nbytes);
 int fwrite(int fd, void *buf, int nbytes);
 
 /* filesystem functions */
 int mkfs(int dev, int num_inodes);
-int mount(int dev);
 
 /* filesystem internal functions */
 int get_inode_by_num(int dev, int inode_number, inode *in);
@@ -94,6 +86,7 @@ int load_directory(int *blocks, directory *output);
 int mkbsdev(int dev, int blocksize, int numblocks);
 int bread(int bsdev, int block, int offset, void *buf, int len);
 int bwrite(int bsdev, int block, int offset, void * buf, int len);
+int offset_block_num(int offset);
 
 /* debugging functions */
 void printfreemask(void);
