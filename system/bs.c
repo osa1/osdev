@@ -34,8 +34,6 @@ int mkbsdev(int dev, int blocksize, int numblocks)
     return OK;
 }
 
-// TODO: NB: This is broken, you can read multiple blocks at once by keeping
-//           len big. The problem is, you can't know what's in next block.
 int bread(int dev, int block, int offset, void *buf, int len)
 {
     char *bbase;
@@ -43,6 +41,13 @@ int bread(int dev, int block, int offset, void *buf, int len)
     if (dev != 0)
     {
         printf("Unsupported device\n");
+        return SYSERR;
+    }
+
+    // osa: Added this as a sanity check.
+    if (offset + len > dev0_blocksize)
+    {
+        printf("bread: Can't read from next block.\n");
         return SYSERR;
     }
 
@@ -59,8 +64,6 @@ int bread(int dev, int block, int offset, void *buf, int len)
     return OK;
 }
 
-/* WARNING: This doesn't check the len, we may end up overriding other blocks
- * I'm wondering if this is the intended behavior. */
 int bwrite(int dev, int block, int offset, void *buf, int len)
 {
     char *bbase;
@@ -70,6 +73,14 @@ int bwrite(int dev, int block, int offset, void *buf, int len)
         printf("Unsupported device\n");
         return SYSERR;
     }
+
+    // osa: Added this as a sanity check.
+    if (offset + len > dev0_blocksize)
+    {
+        printf("bwrite: Can't write to next block.\n");
+        return SYSERR;
+    }
+
     if (offset >= dev0_blocksize)
     {
         printf("Bad offset\n");
@@ -77,7 +88,7 @@ int bwrite(int dev, int block, int offset, void *buf, int len)
     }
 
     bbase = &dev0_blocks[block * dev0_blocksize];
-    memcpy((bbase+offset), buf, len);
+    memcpy(bbase + offset, buf, len);
     return OK;
 }
 
