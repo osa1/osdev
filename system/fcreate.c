@@ -193,7 +193,7 @@ int fcreate(char *path, fcreate_mode mode)
     // Update the file descriptor
     oft[fd_entry].state = O_WRONLY;
 
-    return OK;
+    return fd_entry;
 }
 
 #endif /* FS */
