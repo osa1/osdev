@@ -12,11 +12,7 @@ int dev0_numblocks;
 int dev0_blocksize;
 char *dev0_blocks;
 
-char block_cache[512];
-
-#define NUM_FD 16
-filetable oft[NUM_FD];
-int next_open_fd = 0;
+filedesc oft[NUM_FD];
 
 // number of blocks that fsystem struct uses
 int fsystem_blocks;
@@ -132,6 +128,9 @@ int mkfs(int dev, int num_inodes)
     printf("inodes_start:\t%d\n"
            "blocks_start:\t%d\n"
            "total blocks:\t%d\n", inodes_start, blocks_start, dev0_numblocks);
+
+    // Reset fd table
+    memset(&oft, 0, sizeof(filedesc) * NUM_FD);
 
     return OK;
 }
@@ -327,6 +326,15 @@ int load_directory(int *blocks, directory *output)
         bread(0, blocks[i], 0, (void*)output + (i * get_block_size()), get_block_size());
     }
     return 0;
+}
+
+int find_closed_fd(void)
+{
+    int i;
+    for (i = 0; i < NUM_FD; i++)
+        if (oft[i].state == O_CLOSED)
+            return i;
+    return SYSERR;
 }
 
 #endif /* FS */

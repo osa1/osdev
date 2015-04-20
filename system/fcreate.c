@@ -5,6 +5,8 @@
 
 #ifdef FS
 
+extern filedesc oft[NUM_FD];
+
 /**
  * Search the file system, starting with given directory, for given file path's
  * parent. Input is always interpreted as relative path to the given directory.
@@ -108,6 +110,15 @@ int get_file_inode(directory *cur_dir, char *filename, inode *output, int type)
     return SYSERR;
 }
 
+/*
+ * I think corresponding POSIX function for this is `creat()`. This is from
+ * it's man page:
+ *
+ * > creat() is equivalent to open() with flags equal to O_CREAT|O_WRONLY|O_TRUNC
+ *
+ * So we should use O_WRONLY int fd table entry.
+ *
+ */
 int fcreate(char *path, fcreate_mode mode)
 {
     if (!fs_initialized())
@@ -120,6 +131,13 @@ int fcreate(char *path, fcreate_mode mode)
     {
         printf("fcreate: mode argument is invalid: %d\n", mode);
         printf("It should be %s or %s.\n", "FCREATE_FILE", "FCREATE_DIR");
+        return SYSERR;
+    }
+
+    int fd_entry = find_closed_fd();
+    if (fd_entry == SYSERR)
+    {
+        printf("fcreate: Can't open a new file, close some file descriptors first.\n");
         return SYSERR;
     }
 
@@ -136,14 +154,14 @@ int fcreate(char *path, fcreate_mode mode)
     else
         filename++; // skip '/'
 
-    inode fd_inode;
+    inode *fd_inode = &oft[fd_entry].in;
     if (mode == FCREATE_FILE
-            && get_file_inode(&dir, filename, &fd_inode, INODE_TYPE_FILE) != SYSERR)
+            && get_file_inode(&dir, filename, fd_inode, INODE_TYPE_FILE) != SYSERR)
     {
         printf("fcreate: File already exists.\n");
         return SYSERR;
     }
-    else if (get_file_inode(&dir, filename, &fd_inode, INODE_TYPE_DIR) != SYSERR)
+    else if (get_file_inode(&dir, filename, fd_inode, INODE_TYPE_DIR) != SYSERR)
     {
         printf("fcreate: Directory already exists.\n");
         return SYSERR;
@@ -157,16 +175,23 @@ int fcreate(char *path, fcreate_mode mode)
         return SYSERR;
     }
 
-    if (get_inode_by_num(0, inode_idx, &fd_inode) == SYSERR)
+    if (get_inode_by_num(0, inode_idx, fd_inode) == SYSERR)
         return SYSERR;
 
     printf("Updating inode\n");
     if (mode == FCREATE_FILE)
-        fd_inode.type = INODE_TYPE_FILE;
+        fd_inode->type = INODE_TYPE_FILE;
     else
-        fd_inode.type = INODE_TYPE_DIR;
-    fd_inode.size = 0;
-    memset(fd_inode.blocks, 0, INODEBLOCKS * sizeof(int));
+        fd_inode->type = INODE_TYPE_DIR;
+    fd_inode->size = 0;
+    memset(fd_inode->blocks, 0, INODEBLOCKS * sizeof(int));
+
+    // Write updated inode
+    if (put_inode_by_num(0, inode_idx, fd_inode) == SYSERR)
+        return SYSERR;
+
+    // Update the file descriptor
+    oft[fd_entry].state = O_WRONLY;
 
     return OK;
 }

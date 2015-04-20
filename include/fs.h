@@ -12,6 +12,8 @@
 #define INODE_TYPE_FILE 1
 #define INODE_TYPE_DIR 2
 
+#define NUM_FD 16
+
 typedef struct
 {
     short int type; // directory or file
@@ -22,24 +24,29 @@ typedef struct
 typedef enum { FCREATE_FILE, FCREATE_DIR } fcreate_mode;
 
 /* Flags for fopen */
-#define O_RDONLY 0
-#define O_WRONLY 1
-#define O_RDWR   2
+// NB: O_CLOSED should be 0, because at initialization we fill the table with
+// zeroes
+#define O_CLOSED 0
+#define O_RDONLY 1
+#define O_WRONLY 2
+#define O_RDWR   3
+
+// NB: I think this is for open files. Make sure it is.
+// Also, renaming this from `filetable`, since this is not a table in any way.
+typedef struct
+{
+    int state;
+    // TODO: Disabling these until figuring out how they're useful
+    // int fileptr;
+    // dirent *de; // TODO: why is this a pointer?
+    inode in;
+} filedesc;
 
 typedef struct
 {
     int inode_num;
     char name[FILENAMELEN + 1]; // NB: adding one here for null-termination
 } dirent;
-
-// NB: I think this is for open files. Make sure it is.
-typedef struct
-{
-    int state;
-    int fileptr;
-    dirent *de;
-    inode in;
-} filetable;
 
 typedef struct
 {
@@ -82,6 +89,7 @@ int get_directory_blocks(void);
 int get_block_size(void);
 int load_directory(int *blocks, directory *output);
 int allocate_inode(void);
+int find_closed_fd(void);
 
 /* Block Store functions */
 int mkbsdev(int dev, int blocksize, int numblocks);
