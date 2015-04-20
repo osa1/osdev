@@ -47,7 +47,9 @@ typedef struct
 typedef struct
 {
     int inode_num;
-    char name[FILENAMELEN + 1]; // NB: adding one here for null-termination
+    // NB: adding one here for null-termination, which makes it possible to use
+    // cmpstr like functions
+    char name[FILENAMELEN + 1];
 } dirent;
 
 typedef struct
@@ -75,10 +77,10 @@ int fseek(int fd, int offset);
 int fread(int fd, void *buf, int nbytes);
 int fwrite(int fd, void *buf, int nbytes);
 
-/* filesystem functions */
+/* file system initialization */
 int mkfs(int dev, int num_inodes);
 
-/* filesystem internal functions */
+/* file system utils and helpers */
 int get_inode_by_num(int dev, int inode_number, inode *in);
 int put_inode_by_num(int dev, int inode_number, inode *in);
 int setmaskbit(int b);

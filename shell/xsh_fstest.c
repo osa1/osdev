@@ -1,7 +1,8 @@
+#include <assert.h>
+#include <fs.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>
-#include <fs.h>
 
 #define SIZE 1200
 
@@ -60,8 +61,8 @@ shellcmd xsh_fstest(int nargs, char *args[])
     print_directory(get_root_dir());
     testbitmask();
 
-    buf1 = memget(SIZE*sizeof(char));
-    buf2 = memget(SIZE*sizeof(char));
+    buf1 = memget(SIZE * sizeof(char));
+    buf2 = memget(SIZE * sizeof(char));
 
     // Create test file
     // NB: Fixing the useless argument here.
@@ -110,6 +111,17 @@ shellcmd xsh_fstest(int nargs, char *args[])
         printf("Return val for fclose: %d\n",rval);
     }
 
+    // Now we should be able to fopen the file, and read same contents.
+    fd = fopen("Test_File", O_RDONLY);
+    assert(fd != SYSERR);
+    rval = fread(fd, buf2, SIZE);
+    assert(fd != SYSERR);
+    buf2[rval] = '\0';
+    printf("Content of file %s\n",buf2);
+    rval = fclose(fd);
+    assert (rval != SYSERR);
+
+
 clean_up:
     memfree(buf1, SIZE);
     memfree(buf2, SIZE);
@@ -123,8 +135,8 @@ clean_up:
 
 void testbitmask(void)
 {
-    setmaskbit(31); setmaskbit(95); setmaskbit(159);setmaskbit(223);
-    setmaskbit(287); setmaskbit(351); setmaskbit(415);setmaskbit(479);
+    setmaskbit(31); setmaskbit(95); setmaskbit(159); setmaskbit(223);
+    setmaskbit(287); setmaskbit(351); setmaskbit(415); setmaskbit(479);
     setmaskbit(90); setmaskbit(154); setmaskbit(218); setmaskbit(282);
     setmaskbit(346); setmaskbit(347); setmaskbit(348); setmaskbit(349);
     setmaskbit(350); setmaskbit(100); setmaskbit(164); setmaskbit(228);
