@@ -1,7 +1,7 @@
+#include <fs.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>
-#include <fs.h>
 
 #ifdef FS
 
