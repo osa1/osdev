@@ -95,14 +95,10 @@ int get_file_inode(directory *cur_dir, char *filename, inode *output, int type)
         if (strcmp(entry.name, filename) == 0)
         {
             if (get_inode_by_num(0, entry.inode_num, output) == SYSERR)
-            {
                 return SYSERR;
-            }
 
             if (output->type == type)
-            {
                 return OK;
-            }
         }
     }
 
@@ -192,6 +188,7 @@ int fcreate(char *path, fcreate_mode mode)
 
     // Update the file descriptor
     oft[fd_entry].state = O_WRONLY;
+    oft[fd_entry].cursor = 0;
 
     return fd_entry;
 }

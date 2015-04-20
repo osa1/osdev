@@ -7,7 +7,8 @@
 #ifdef FS
 #include <fs.h>
 
-static fsystem fsd;
+fsystem fsd;
+
 int dev0_numblocks;
 int dev0_blocksize;
 char *dev0_blocks;
@@ -30,6 +31,20 @@ int inodes_start;
 int blocks_start;
 
 int fileblock_to_diskblock(int dev, int fd, int fileblock);
+
+/** NOTES
+ *
+ * Allocation/deallocation of inodes and blocks:
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * We don't use free lists, we only keep bitfields. This means allocations need
+ * linear search.
+ *
+ * Layout of the file system itself:
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ *
+ * TODO: fill this part
+ *
+ */
 
 int mkfs(int dev, int num_inodes)
 {
@@ -59,7 +74,6 @@ int mkfs(int dev, int num_inodes)
     }
     memset(fsd.freemask, 0, fsd.freemaskbytes);
 
-    fsd.inodes_used = 0;
     i = fsd.ninodes;
     while ( (i % 8) != 0 ) {i++;}
     if ((fsd.inode_bitfield = memget(i / 8)) == (void*)SYSERR) {
@@ -164,9 +178,21 @@ int allocate_inode()
             return i;
         }
 
-    // Sanity check
-    if (fsd.ninodes != fsd.inodes_used)
-        printf("BUG: allocate_inode can't allocate, but inodes_used != ninodes\n");
+    return SYSERR;
+}
+
+int allocate_block(void)
+{
+    char *bitfield = fsd.freemask;
+    int i;
+    for (i = 0; i < fsd.nblocks; i++)
+    {
+        if (!checkbit(bitfield, i))
+        {
+            setbit(bitfield, i);
+            return i;
+        }
+    }
 
     return SYSERR;
 }

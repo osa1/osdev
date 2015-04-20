@@ -37,7 +37,7 @@ typedef struct
 {
     int state;
     // TODO: Disabling these until figuring out how they're useful
-    // int fileptr;
+    int cursor;
     // dirent *de; // TODO: why is this a pointer?
     inode in;
 } filedesc;
@@ -59,7 +59,6 @@ typedef struct
     int nblocks;
     int blocksz;
     int ninodes;
-    int inodes_used;
     char *inode_bitfield;
     int freemaskbytes;
     char *freemask;
@@ -90,6 +89,9 @@ int get_block_size(void);
 int load_directory(int *blocks, directory *output);
 int allocate_inode(void);
 int find_closed_fd(void);
+int allocate_block(void);
+bool checkbit(char *bitfield, int bit_idx);
+void setbit(char *bitfield, int bit_idx);
 
 /* Block Store functions */
 int mkbsdev(int dev, int blocksize, int numblocks);
