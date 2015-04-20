@@ -20,6 +20,9 @@ void srand(unsigned int seed);
 void *malloc(size_t size);
 void free(void *ptr);
 
+#define MIN(a, b) (a < b ? a : b)
+#define MAX(a, b) (a > b ? a : b)
+
 #define RAND_MAX 32767
 
 #endif /* _STDLIB_H_ */

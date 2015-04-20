@@ -66,7 +66,7 @@ shellcmd xsh_fstest(int nargs, char *args[])
     // Create test file
     // NB: Fixing the useless argument here.
     fd = fcreate("Test_File", FCREATE_FILE);
-    if (fd < 0)
+    if (fd == SYSERR)
     {
         printf("fcreate failed. Aborting.\n");
         return SYSERR;
@@ -81,9 +81,9 @@ shellcmd xsh_fstest(int nargs, char *args[])
     }
 
     rval = fwrite(fd,buf1,SIZE);
-    if(rval == 0 || rval != SIZE )
+    if(rval == SYSERR || rval != SIZE )
     {
-        printf("\n\r File write failed");
+        printf("File write failed.\n");
         goto clean_up;
     }
 
@@ -96,23 +96,23 @@ shellcmd xsh_fstest(int nargs, char *args[])
     rval = fread(fd, buf2, rval);
     buf2[rval] = '\0';
 
-    if(rval == 0)
+    if (rval == SYSERR)
     {
-        printf("\n\r File read failed");
+        printf("File read failed\n");
         goto clean_up;
     }
 
-    printf("\n\rContent of file %s",buf2);
+    printf("Content of file %s\n",buf2);
 
     rval = fclose(fd);
     if(rval != OK)
     {
-        printf("\n\rReturn val for fclose : %d",rval);
+        printf("Return val for fclose: %d\n",rval);
     }
 
 clean_up:
-    memfree(buf1,SIZE);
-    memfree(buf2,SIZE);
+    memfree(buf1, SIZE);
+    memfree(buf2, SIZE);
 
 #else
     printf("No filesystem support\n");
@@ -125,19 +125,19 @@ void testbitmask(void)
 {
     setmaskbit(31); setmaskbit(95); setmaskbit(159);setmaskbit(223);
     setmaskbit(287); setmaskbit(351); setmaskbit(415);setmaskbit(479);
-    setmaskbit(90); setmaskbit(154);setmaskbit(218); setmaskbit(282);
+    setmaskbit(90); setmaskbit(154); setmaskbit(218); setmaskbit(282);
     setmaskbit(346); setmaskbit(347); setmaskbit(348); setmaskbit(349);
-    setmaskbit(350); setmaskbit(100); setmaskbit(164);setmaskbit(228);
+    setmaskbit(350); setmaskbit(100); setmaskbit(164); setmaskbit(228);
     setmaskbit(292); setmaskbit(356); setmaskbit(355); setmaskbit(354);
     setmaskbit(353); setmaskbit(352);
 
     printfreemask();
 
-    clearmaskbit(31); clearmaskbit(95); clearmaskbit(159);clearmaskbit(223);
-    clearmaskbit(287); clearmaskbit(351); clearmaskbit(415);clearmaskbit(479);
-    clearmaskbit(90); clearmaskbit(154);clearmaskbit(218); clearmaskbit(282);
+    clearmaskbit(31); clearmaskbit(95); clearmaskbit(159); clearmaskbit(223);
+    clearmaskbit(287); clearmaskbit(351); clearmaskbit(415); clearmaskbit(479);
+    clearmaskbit(90); clearmaskbit(154); clearmaskbit(218); clearmaskbit(282);
     clearmaskbit(346); clearmaskbit(347); clearmaskbit(348); clearmaskbit(349);
-    clearmaskbit(350); clearmaskbit(100); clearmaskbit(164);clearmaskbit(228);
+    clearmaskbit(350); clearmaskbit(100); clearmaskbit(164); clearmaskbit(228);
     clearmaskbit(292); clearmaskbit(356); clearmaskbit(355); clearmaskbit(354);
     clearmaskbit(353); clearmaskbit(352);
 

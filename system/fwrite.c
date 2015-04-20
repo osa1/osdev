@@ -1,7 +1,7 @@
+#include <fs.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>
-#include <fs.h>
 
 #ifdef FS
 
@@ -9,10 +9,14 @@ extern fsystem fsd;
 extern filedesc oft[NUM_FD];
 extern int dev0_blocksize;
 
-#define MIN(a, b) (a < b ? a : b)
-
 int fwrite(int fd, void *buf, int nbytes)
 {
+    if (fd < 0 || fd >= NUM_FD)
+    {
+        printf("fwrite: File descriptor out of range: %d.\n", fd);
+        return SYSERR;
+    }
+
     filedesc *desc = &oft[fd];
 
     if (desc->state == O_CLOSED)
@@ -43,8 +47,10 @@ int fwrite(int fd, void *buf, int nbytes)
     }
 
     int ret = 0;
+    int df = 0;
     while (nbytes != 0)
     {
+        printf("writing %d bytes.\n", nbytes);
         int block_idx = desc->in.blocks[cursor_block];
 
         if (block_idx <= 0)
@@ -56,6 +62,8 @@ int fwrite(int fd, void *buf, int nbytes)
                 printf("fwrite: Block allocation failed.\n");
                 return SYSERR;
             }
+            desc->in.blocks[cursor_block] = block_idx;
+            desc->in.size += dev0_blocksize;
         }
 
         // sanity check: inode block should be allocated
@@ -66,20 +74,22 @@ int fwrite(int fd, void *buf, int nbytes)
         }
 
         if (bwrite(0, block_idx, cursor_block_offset, buf,
-                    MIN(dev0_blocksize - cursor_block_offset, nbytes))
-                == SYSERR) {
+                    MIN(dev0_blocksize - cursor_block_offset, nbytes)) == SYSERR) {
             printf("fwrite: bwrite failed.\n");
             return SYSERR;
         }
-        ret += MIN(dev0_blocksize - cursor_block_offset, nbytes);
+
+        df = MIN(dev0_blocksize - cursor_block_offset, nbytes);
+        ret += df;
 
         // drop written parts
-        nbytes -= MIN(dev0_blocksize - cursor_block_offset, nbytes);
-        buf += dev0_blocksize - cursor_block_offset;
+        nbytes -= df;
+        buf += df;
         cursor_block++; // continue writing to next block
         cursor_block_offset = 0; // we start writing to next block from the beginning.
     }
 
+    desc->cursor += ret;
     return ret;
 }
 

@@ -1,6 +1,8 @@
 #ifndef FS_H
 #define FS_H
 
+#include <stdlib.h>
+
 #define FILENAMELEN 32
 #define INODEBLOCKS 12
 #define DIRECTORY_SIZE 16
