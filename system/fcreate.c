@@ -8,7 +8,7 @@
 /**
  * Search the file system, starting with given directory, for given file path's
  * parent. Input is always interpreted as relative path to the given directory.
- * (even if it start with '/')
+ * (even if it starts with '/')
  *
  * (Doesn't check if file system is initialized)
  *
@@ -68,6 +68,7 @@ int get_parent_directory(directory *cur_dir, char *path, directory *output)
     }
     else
     {
+        *dir_sep = '/';
         *output = *cur_dir;
         return OK;
     }
@@ -115,10 +116,10 @@ int fcreate(char *path, fcreate_mode mode)
         return SYSERR;
     }
 
-    if (mode != INODE_TYPE_FILE && mode != INODE_TYPE_DIR)
+    if (mode != FCREATE_FILE && mode != FCREATE_DIR)
     {
         printf("fcreate: mode argument is invalid: %d\n", mode);
-        printf("It should be %s or %s.\n", "INODE_TYPE_FILE", "INODE_TYPE_DIR");
+        printf("It should be %s or %s.\n", "FCREATE_FILE", "FCREATE_DIR");
         return SYSERR;
     }
 
@@ -136,7 +137,7 @@ int fcreate(char *path, fcreate_mode mode)
         filename++; // skip '/'
 
     inode fd_inode;
-    if (mode == INODE_TYPE_FILE
+    if (mode == FCREATE_FILE
             && get_file_inode(&dir, filename, &fd_inode, INODE_TYPE_FILE) != SYSERR)
     {
         printf("fcreate: File already exists.\n");
@@ -149,13 +150,14 @@ int fcreate(char *path, fcreate_mode mode)
     }
 
     // Allocate INode for the file/directory
-    // int inode_block = allocate_block();
-    // if (inode_block == SYSERR)
-    // {
-    //     printf("fcreate: Can't allocate block.\n");
-    //     return SYSERR;
-    // }
+    int inode_idx = allocate_inode();
+    if (inode_idx == SYSERR)
+    {
+        printf("fcreate: Can't allocate inode for file.\n");
+        return SYSERR;
+    }
 
+    printf("Allocated inode\n");
     return SYSERR;
 }
 

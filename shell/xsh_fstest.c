@@ -65,7 +65,7 @@ shellcmd xsh_fstest(int nargs, char *args[])
 
     // Create test file
     // NB: Fixing the useless argument here.
-    fd = fcreate("Test_File", INODE_TYPE_FILE);
+    fd = fcreate("Test_File", FCREATE_FILE);
     if (fd < 0)
     {
         printf("fcreate failed. Aborting.\n");
@@ -75,8 +75,8 @@ shellcmd xsh_fstest(int nargs, char *args[])
     // Fill buffer with random stuff
     for(i=0; i<SIZE; i++)
     {
-        j = i%(127-33);
-        j = j+33;
+        j = i % (127-33);
+        j = j + 33;
         buf1[i] = (char) j;
     }
 
@@ -90,7 +90,7 @@ shellcmd xsh_fstest(int nargs, char *args[])
     // Now my file offset is pointing at EOF file, I need to bring it back to
     // start of file Assuming here implementation of fseek is like
     // "original_offset = original_offset + input_offset_from_fseek"
-    fseek(fd,-rval);
+    fseek(fd, -rval);
 
     //read the file
     rval = fread(fd, buf2, rval);

@@ -27,12 +27,11 @@ int freemask_blocks;
 // number of blocks inode_bitfield uses
 int inode_bitfield_blocks;
 
-#define INODES_PER_BLOCK (fsd.blocksz / sizeof(inode))
-#define NUM_INODE_BLOCKS                            \
-    (( (fsd.ninodes % INODES_PER_BLOCK) == 0) ?     \
-            fsd.ninodes / INODES_PER_BLOCK :        \
-            (fsd.ninodes / INODES_PER_BLOCK) + 1)
-#define FIRST_INODE_BLOCK 2
+// first inode block number
+int inodes_start;
+
+// first file block number
+int blocks_start;
 
 int fileblock_to_diskblock(int dev, int fd, int fileblock);
 
@@ -58,7 +57,6 @@ int mkfs(int dev, int num_inodes)
     while ( (i % 8) != 0 ) {i++;}
 
     fsd.freemaskbytes = i / 8;
-
     if ((fsd.freemask = memget(fsd.freemaskbytes)) == (void *)SYSERR) {
         printf("mkfs memget failed. (allocating freemaskbytes)\n");
         return SYSERR;
@@ -128,7 +126,47 @@ int mkfs(int dev, int num_inodes)
         }
     }
 
+    inodes_start = fsystem_blocks + freemask_blocks + inode_bitfield_blocks;
+    blocks_start = inodes_start + (dev0_blocksize / sizeof(inode));
+
+    printf("inodes_start:\t%d\n"
+           "blocks_start:\t%d\n"
+           "total blocks:\t%d\n", inodes_start, blocks_start, dev0_numblocks);
+
     return OK;
+}
+
+bool checkbit(char *bitfield, int idx)
+{
+    int byte, bit;
+    byte = idx / 8;
+    bit  = idx % 8;
+
+    return ((bitfield[byte] & 0x80 /* 0b10000000 */ >> bit) != 0);
+}
+
+void setbit(char *bitfield, int idx)
+{
+    int byte, bit;
+    byte = idx / 8;
+    bit  = idx % 8;
+
+    bitfield[byte] |= (0x80 >> bit);
+}
+
+int allocate_inode()
+{
+    char *bitfield = fsd.inode_bitfield;
+    int i;
+    for (i = 0; i < fsd.ninodes; i++)
+        if (!checkbit(bitfield, i))
+            return i;
+
+    // Sanity check
+    if (fsd.ninodes != fsd.inodes_used)
+        printf("BUG: allocate_inode can't allocate, but inodes_used != ninodes\n");
+
+    return SYSERR;
 }
 
 int fileblock_to_diskblock(int dev, int fd, int fileblock)
@@ -144,77 +182,27 @@ int fileblock_to_diskblock(int dev, int fd, int fileblock)
 /* read in an inode and fill in the pointer */
 int get_inode_by_num(int dev, int inode_number, inode *in)
 {
-    int bl, inn;
-    int inode_off;
+    // int inode_first_block = fsystem_blocks + freemask_blocks + inode_bitfield_blocks;
 
-    if (dev != 0) {
-        printf("Unsupported device\n");
-        return SYSERR;
-    }
-    if (inode_number >= fsd.ninodes) {
-        printf("get_inode_by_num: inode %d out of range\n", inode_number);
-        return SYSERR;
-    }
-
-    bl = inode_number / INODES_PER_BLOCK;
-    inn = inode_number % INODES_PER_BLOCK;
-    bl += FIRST_INODE_BLOCK;
-
-    inode_off = inn * sizeof(inode);
-
-    bread(0, bl, 0, block_cache, fsd.blocksz);
-    memcpy(in, &block_cache[inode_off], sizeof(inode));
-
-    return OK;
+    return SYSERR; // TODO
 }
 
 int put_inode_by_num(int dev, int inode_number, inode *in)
 {
-    int bl, inn;
-
-    if (dev != 0) {
-        printf("Unsupported device\n");
-        return SYSERR;
-    }
-    if (inode_number > fsd.ninodes) {
-        printf("put_inode_by_num: inode %d out of range\n", inode_number);
-        return SYSERR;
-    }
-
-    bl = inode_number / INODES_PER_BLOCK;
-    inn = inode_number % INODES_PER_BLOCK;
-    bl += FIRST_INODE_BLOCK;
-
-    /*
-    printf("in_no: %d = %d/%d\n", inode_number, bl, inn);
-    */
-
-    bread(0, bl, 0, block_cache, fsd.blocksz);
-    memcpy(&block_cache[(inn*sizeof(inode))], in, sizeof(inode));
-    bwrite(0, bl, 0, block_cache, fsd.blocksz);
-
-    return OK;
+    return SYSERR; // TODO
 }
 
 /* specify the block number to be set in the mask */
 int setmaskbit(int b)
 {
-    int mbyte, mbit;
-    mbyte = b / 8;
-    mbit = b % 8;
-
-    fsd.freemask[mbyte] |= (0x80 >> mbit);
+    setbit(fsd.freemask, b);
     return OK;
 }
 
 /* specify the block number to be read in the mask */
 int getmaskbit(int b)
 {
-    int mbyte, mbit;
-    mbyte = b / 8;
-    mbit = b % 8;
-
-    return ( ( (fsd.freemask[mbyte] << mbit) & 0x80 ) >> 7);
+    return checkbit(fsd.freemask, b);
 }
 
 /* specify the block number to be unset in the mask */

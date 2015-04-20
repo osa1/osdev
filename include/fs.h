@@ -81,6 +81,7 @@ directory *get_root_dir(void);
 int get_directory_blocks(void);
 int get_block_size(void);
 int load_directory(int *blocks, directory *output);
+int allocate_inode(void);
 
 /* Block Store functions */
 int mkbsdev(int dev, int blocksize, int numblocks);
