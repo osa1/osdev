@@ -104,6 +104,9 @@ int mkfs(int dev, int num_inodes)
             printf("mkfs: Can't write fsystem to block %d.\n", i);
             return SYSERR;
         }
+
+        // mark block as used
+        setbit(fsd.freemask, 0 + i);
     }
 
     // Write freemask to the drive
@@ -120,6 +123,9 @@ int mkfs(int dev, int num_inodes)
                     fsystem_blocks + i);
             return SYSERR;
         }
+
+        // mark block as used
+        setbit(fsd.freemask, fsystem_blocks + i);
     }
 
     // Write inode_bitfield to the drive
@@ -136,6 +142,9 @@ int mkfs(int dev, int num_inodes)
                     fsystem_blocks + freemask_blocks + i);
             return SYSERR;
         }
+
+        // mark block as used
+        setbit(fsd.freemask, fsystem_blocks + freemask_blocks + i);
     }
 
     inodes_start = fsystem_blocks + freemask_blocks + inode_bitfield_blocks;
