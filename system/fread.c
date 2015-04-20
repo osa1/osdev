@@ -49,6 +49,8 @@ int fread(int fd, void *buf, int nbytes)
 
         int block_idx = desc->in.blocks[cursor_block];
 
+        // TODO: We actually need more strict check here, first couple of
+        // blocks are reserved for file system bookkeeping.
         if (block_idx <= 0)
         {
             printf("fread: This is probably a bug, block_idx <= 0, but region is in range.\n");

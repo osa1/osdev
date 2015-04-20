@@ -9,10 +9,10 @@ extern filedesc oft[NUM_FD];
 
 int fseek(int fd, int offset)
 {
-    filedesc desc = oft[fd];
+    filedesc *desc = &oft[fd];
 
-    int new_cursor = desc.cursor + offset;
-    desc.cursor += offset;
+    int new_cursor = desc->cursor + offset;
+    desc->cursor += offset;
 
     // TODO: Are there any other conditions that we might want to check?
     if (new_cursor < 0)

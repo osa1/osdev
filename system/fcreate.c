@@ -112,7 +112,9 @@ int get_file_inode(directory *cur_dir, char *filename, inode *output, int type)
  *
  * > creat() is equivalent to open() with flags equal to O_CREAT|O_WRONLY|O_TRUNC
  *
- * So we should use O_WRONLY int fd table entry.
+ * // So we should use O_WRONLY int fd table entry. <- NO
+ * According to the provided test file, we should be able to read from the
+ * created file. So I'm using RW mode.
  *
  */
 int fcreate(char *path, fcreate_mode mode)
@@ -187,7 +189,7 @@ int fcreate(char *path, fcreate_mode mode)
         return SYSERR;
 
     // Update the file descriptor
-    oft[fd_entry].state = O_WRONLY;
+    oft[fd_entry].state = O_RDWR;
     oft[fd_entry].cursor = 0;
 
     return fd_entry;

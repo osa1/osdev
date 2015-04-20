@@ -46,6 +46,8 @@ int fileblock_to_diskblock(int dev, int fd, int fileblock);
  *
  */
 
+// FIXME: Bug: We're not setting bit fields for first couple of reserved
+// blocks.
 int mkfs(int dev, int num_inodes)
 {
     int i;
