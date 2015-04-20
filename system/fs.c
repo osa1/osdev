@@ -160,7 +160,10 @@ int allocate_inode()
     int i;
     for (i = 0; i < fsd.ninodes; i++)
         if (!checkbit(bitfield, i))
+        {
+            setbit(bitfield, i);
             return i;
+        }
 
     // Sanity check
     if (fsd.ninodes != fsd.inodes_used)
@@ -179,17 +182,39 @@ int fileblock_to_diskblock(int dev, int fd, int fileblock)
     return oft[fd].in.blocks[fileblock];
 }
 
+/*
+ * NOTE inodes:
+ * We store inodes packaged, one block may contain multiple inodes, and some
+ * part of an inode may be in next block.
+ */
+
 /* read in an inode and fill in the pointer */
 int get_inode_by_num(int dev, int inode_number, inode *in)
 {
-    // int inode_first_block = fsystem_blocks + freemask_blocks + inode_bitfield_blocks;
+    // make sure inode_number is in range
+    if (inode_number >= fsd.ninodes)
+    {
+        printf("get_inode_by_number: inode %d is not in range.\n", inode_number);
+        return SYSERR;
+    }
 
-    return SYSERR; // TODO
+    int inode_block_num    = inodes_start + (inode_number * sizeof(inode)) / dev0_blocksize;
+    int inode_block_offset = (inode_number * sizeof(inode)) % dev0_blocksize;
+    return bread(dev, inode_block_num, inode_block_offset, (void*)in, sizeof(inode));
 }
 
 int put_inode_by_num(int dev, int inode_number, inode *in)
 {
-    return SYSERR; // TODO
+    // make sure inode_number is in range
+    if (inode_number >= fsd.ninodes)
+    {
+        printf("get_inode_by_number: inode %d is not in range.\n", inode_number);
+        return SYSERR;
+    }
+
+    int inode_block_num    = inodes_start + (inode_number * sizeof(inode)) / dev0_blocksize;
+    int inode_block_offset = (inode_number * sizeof(inode)) % dev0_blocksize;
+    return bwrite(dev, inode_block_num, inode_block_offset, (void*)in, sizeof(inode));
 }
 
 /* specify the block number to be set in the mask */

@@ -45,11 +45,12 @@ int bread(int dev, int block, int offset, void *buf, int len)
     }
 
     // osa: Added this as a sanity check.
-    if (offset + len > dev0_blocksize)
-    {
-        printf("bread: Can't read from next block.\n");
-        return SYSERR;
-    }
+    // osa: Removed, this turned out to be a useful feature.
+    // if (offset + len > dev0_blocksize)
+    // {
+    //     printf("bread: Can't read from next block.\n");
+    //     return SYSERR;
+    // }
 
     if (offset >= dev0_blocksize)
     {
@@ -75,11 +76,12 @@ int bwrite(int dev, int block, int offset, void *buf, int len)
     }
 
     // osa: Added this as a sanity check.
-    if (offset + len > dev0_blocksize)
-    {
-        printf("bwrite: Can't write to next block.\n");
-        return SYSERR;
-    }
+    // osa: Removed, this turned out to be a useful feature.
+    // if (offset + len > dev0_blocksize)
+    // {
+    //     printf("bwrite: Can't write to next block.\n");
+    //     return SYSERR;
+    // }
 
     if (offset >= dev0_blocksize)
     {

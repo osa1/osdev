@@ -157,8 +157,18 @@ int fcreate(char *path, fcreate_mode mode)
         return SYSERR;
     }
 
-    printf("Allocated inode\n");
-    return SYSERR;
+    if (get_inode_by_num(0, inode_idx, &fd_inode) == SYSERR)
+        return SYSERR;
+
+    printf("Updating inode\n");
+    if (mode == FCREATE_FILE)
+        fd_inode.type = INODE_TYPE_FILE;
+    else
+        fd_inode.type = INODE_TYPE_DIR;
+    fd_inode.size = 0;
+    memset(fd_inode.blocks, 0, INODEBLOCKS * sizeof(int));
+
+    return OK;
 }
 
 #endif /* FS */
