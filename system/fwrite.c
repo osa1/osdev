@@ -57,6 +57,7 @@ int fwrite(int fd, void *buf, int nbytes)
         {
             // Need to allocate a block
             block_idx = allocate_block();
+            printf("allocated new block: %d\n", block_idx);
             if (block_idx == SYSERR)
             {
                 printf("fwrite: Block allocation failed.\n");
@@ -69,11 +70,11 @@ int fwrite(int fd, void *buf, int nbytes)
         // sanity check: inode block should be allocated
         if (!checkbit(fsd.freemask, block_idx))
         {
-            printf("fwrite: File has unallocated block.\n");
+            printf("fwrite: File has unallocated block, %d.\n", block_idx);
             return SYSERR;
         }
 
-        if (bwrite(0, block_idx, cursor_block_offset, buf,
+        if (bwrite(0, block_idx, cursor_block_offset, buf, // FIXME: This is overriding inode blocks
                     MIN(dev0_blocksize - cursor_block_offset, nbytes)) == SYSERR) {
             printf("fwrite: bwrite failed.\n");
             return SYSERR;

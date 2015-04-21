@@ -84,6 +84,9 @@ int mkfs(int dev, int num_inodes)
     }
     memset(fsd.inode_bitfield, 0, i / 8);
 
+    // set special inode_num for root directory
+    fsd.root_dir.inode_num = -1;
+
     fsystem_blocks = offset_block_num(sizeof(fsystem));
     freemask_blocks = offset_block_num(fsd.freemaskbytes);
     inode_bitfield_blocks = offset_block_num(i / 8);
@@ -186,7 +189,7 @@ int allocate_inode()
         if (!checkbit(bitfield, i))
         {
             setbit(bitfield, i);
-            return i;
+            return inodes_start + i;
         }
 
     return SYSERR;
@@ -196,7 +199,7 @@ int allocate_block(void)
 {
     char *bitfield = fsd.freemask;
     int i;
-    for (i = 0; i < fsd.nblocks; i++)
+    for (i = blocks_start; i < fsd.nblocks; i++)
     {
         if (!checkbit(bitfield, i))
         {
@@ -236,6 +239,7 @@ int get_inode_by_num(int dev, int inode_number, inode *in)
 
     int inode_block_num    = inodes_start + (inode_number * sizeof(inode)) / dev0_blocksize;
     int inode_block_offset = (inode_number * sizeof(inode)) % dev0_blocksize;
+    printf("get_inode_by_num: inode_block_num: %d, inode_block_offset: %d\n", inode_block_num, inode_block_offset);
     return bread(dev, inode_block_num, inode_block_offset, (void*)in, sizeof(inode));
 }
 
@@ -250,6 +254,7 @@ int put_inode_by_num(int dev, int inode_number, inode *in)
 
     int inode_block_num    = inodes_start + (inode_number * sizeof(inode)) / dev0_blocksize;
     int inode_block_offset = (inode_number * sizeof(inode)) % dev0_blocksize;
+    printf("put_inode_by_num: inode_block_num: %d, inode_block_offset: %d\n", inode_block_num, inode_block_offset);
     return bwrite(dev, inode_block_num, inode_block_offset, (void*)in, sizeof(inode));
 }
 
@@ -305,7 +310,7 @@ void printfreemask(void)
 void print_dirent(dirent *ent)
 {
     printf("inode_num: %d\n", ent->inode_num);
-    printf("dir name:  %s\n", ent->name);
+    printf("file name: %s\n", ent->name);
 }
 
 void print_directory(directory *dir)
@@ -371,6 +376,112 @@ int find_closed_fd(void)
     for (i = 0; i < NUM_FD; i++)
         if (oft[i].state == O_CLOSED)
             return i;
+    return SYSERR;
+}
+
+/**
+ * Search the file system, starting with given directory, for given file path's
+ * parent. Input is always interpreted as relative path to the given directory.
+ * (even if it starts with '/')
+ *
+ * (Doesn't check if file system is initialized)
+ *
+ * Returns negative in case of an error.
+ */
+int get_parent_directory(directory *cur_dir, char *path, directory *output)
+{
+    // Skip initial slash, as noted in the documentation.
+    if (*path == '/') path++;
+
+    char *dir_sep = strchr(path, '/');
+    if (dir_sep != NULL)
+    {
+        // we have a directory to traverse, find it in cur_dir's entries
+        *dir_sep = '\0';
+        int i;
+        for (i = 0; i < cur_dir->numentries; i++)
+        {
+            dirent entry = cur_dir->entry[i];
+            if (strcmp(entry.name, path) == 0)
+            {
+                // Found a matching name. Read the INode, make sure the entry
+                // is a directory, load directory struct, and continue
+                // seraching from new directory.
+
+                // again, making up a dev number here. this assignment sucks.
+                inode entry_node;
+                if (get_inode_by_num(0, entry.inode_num, &entry_node) == SYSERR)
+                {
+                    printf("get_parent_directory: Can't read entry inode.\n");
+                    *dir_sep = '/';
+                    return SYSERR;
+                }
+
+                if (entry_node.type != INODE_TYPE_DIR)
+                {
+                    // Not a directory node, skip.
+                    continue;
+                }
+
+                // Found what we've been looking for, read directory struct
+                *dir_sep = '/';
+
+                if (load_directory(entry_node.blocks, cur_dir) == SYSERR)
+                {
+                    printf("get_parent_directory: Can't load entry's blocks.\n");
+                    return SYSERR;
+                }
+
+                return get_parent_directory(cur_dir, dir_sep + 1, output);
+            }
+        }
+
+        printf("Can't find directory %s in the tree.\n", path);
+        *dir_sep = '/';
+        return SYSERR;
+    }
+    else
+    {
+        *dir_sep = '/';
+        *output = *cur_dir;
+        return OK;
+    }
+}
+
+/**
+ * NB: This also works for reading directory inodes.
+ */
+int get_file_inode(directory *cur_dir, char *filename, inode *output, int type)
+{
+    // sanity check
+    if (strchr(filename, '/') != NULL)
+    {
+        printf("get_file_inode: File name has '/' in it.\n");
+        return SYSERR;
+    }
+
+    int i;
+    for (i = 0; i < cur_dir->numentries; i++)
+    {
+        dirent entry = cur_dir->entry[i];
+        if (strcmp(entry.name, filename) == 0)
+        {
+            if (get_inode_by_num(0, entry.inode_num, output) == SYSERR) {
+                printf("get_file_inode: Can't get inode by num: %d\n", entry.inode_num);
+                return SYSERR;
+            }
+
+            if (output->type == type)
+                return OK;
+            else {
+                printf("------types don't match: %d - %d\n", type, output->type);
+            }
+        }
+    }
+
+    printf("get_file_inode: File isn't in directory.\n");
+    print_directory(cur_dir);
+    printf("file name: %s\n", filename);
     return SYSERR;
 }
 

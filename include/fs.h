@@ -23,8 +23,6 @@ typedef struct
     int blocks[INODEBLOCKS]; // block indexes
 } inode;
 
-typedef enum { FCREATE_FILE, FCREATE_DIR } fcreate_mode;
-
 /* Flags for fopen */
 // NB: O_CLOSED should be 0, because at initialization we fill the table with
 // zeroes
@@ -55,6 +53,9 @@ typedef struct
 typedef struct
 {
     int numentries;
+    int inode_num; // inode of directory entry. This is not strictly necessary,
+                   // but I'm using this to make updating directory entries easier.
+                   // NOTE: Root directory is a special case, and it has inode_num = -1.
     dirent entry[DIRECTORY_SIZE];
 } directory;
 
@@ -72,10 +73,11 @@ typedef struct
 /* file and directory functions */
 int fopen(char *filename, int flags);
 int fclose(int fd);
-int fcreate(char *filename, fcreate_mode mode);
+int fcreate(char *filename);
 int fseek(int fd, int offset);
 int fread(int fd, void *buf, int nbytes);
 int fwrite(int fd, void *buf, int nbytes);
+int mkdir(char *path);
 
 /* file system initialization */
 int mkfs(int dev, int num_inodes);
@@ -96,6 +98,8 @@ int find_closed_fd(void);
 int allocate_block(void);
 bool checkbit(char *bitfield, int bit_idx);
 void setbit(char *bitfield, int bit_idx);
+int get_parent_directory(directory *cur_dir, char *path, directory *output);
+int get_file_inode(directory *cur_dir, char *filename, inode *output, int type);
 
 /* Block Store functions */
 int mkbsdev(int dev, int blocksize, int numblocks);

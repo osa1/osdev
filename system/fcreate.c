@@ -5,106 +5,8 @@
 
 #ifdef FS
 
+extern fsystem fsd;
 extern filedesc oft[NUM_FD];
-
-/**
- * Search the file system, starting with given directory, for given file path's
- * parent. Input is always interpreted as relative path to the given directory.
- * (even if it starts with '/')
- *
- * (Doesn't check if file system is initialized)
- *
- * Returns negative in case of an error.
- */
-int get_parent_directory(directory *cur_dir, char *path, directory *output)
-{
-    // Skip initial slash, as noted in the documentation.
-    if (*path == '/') path++;
-
-    char *dir_sep = strchr(path, '/');
-    if (dir_sep != NULL)
-    {
-        // we have a directory to traverse, find it in cur_dir's entries
-        *dir_sep = '\0';
-        int i;
-        for (i = 0; i < cur_dir->numentries; i++)
-        {
-            dirent entry = cur_dir->entry[i];
-            if (strcmp(entry.name, path) == 0)
-            {
-                // Found a matching name. Read the INode, make sure the entry
-                // is a directory, load directory struct, and continue
-                // seraching from new directory.
-
-                // again, making up a dev number here. this assignment sucks.
-                inode entry_node;
-                if (get_inode_by_num(0, entry.inode_num, &entry_node) == SYSERR)
-                {
-                    printf("get_parent_directory: Can't read entry inode.\n");
-                    *dir_sep = '/';
-                    return SYSERR;
-                }
-
-                if (entry_node.type != INODE_TYPE_DIR)
-                {
-                    // Not a directory node, skip.
-                    continue;
-                }
-
-                // Found what we've been looking for, read directory struct
-                *dir_sep = '/';
-
-                if (load_directory(entry_node.blocks, cur_dir) == SYSERR)
-                {
-                    printf("get_parent_directory: Can't load entry's blocks.\n");
-                    return SYSERR;
-                }
-
-                return get_parent_directory(cur_dir, dir_sep + 1, output);
-            }
-        }
-
-        printf("Can't find directory %s in the tree.\n", path);
-        *dir_sep = '/';
-        return SYSERR;
-    }
-    else
-    {
-        *dir_sep = '/';
-        *output = *cur_dir;
-        return OK;
-    }
-}
-
-/**
- * NB: This also works for reading directory inodes.
- */
-int get_file_inode(directory *cur_dir, char *filename, inode *output, int type)
-{
-    // sanity check
-    if (strchr(filename, '/') != NULL)
-    {
-        printf("get_file_inode: File name has '/' in it.\n");
-        return SYSERR;
-    }
-
-    int i;
-    for (i = 0; i < cur_dir->numentries; i++)
-    {
-        dirent entry = cur_dir->entry[i];
-        if (strcmp(entry.name, filename) == 0)
-        {
-            if (get_inode_by_num(0, entry.inode_num, output) == SYSERR)
-                return SYSERR;
-
-            if (output->type == type)
-                return OK;
-        }
-    }
-
-    // printf("get_file_inode: File isn't in directory.\n");
-    return SYSERR;
-}
 
 /*
  * I think corresponding POSIX function for this is `creat()`. This is from
@@ -114,21 +16,17 @@ int get_file_inode(directory *cur_dir, char *filename, inode *output, int type)
  *
  * // So we should use O_WRONLY int fd table entry. <- NO
  * According to the provided test file, we should be able to read from the
+ *
  * created file. So I'm using RW mode.
  *
+ * This only creates files, for creating directories, see `mkdir()`.
+ *
  */
-int fcreate(char *path, fcreate_mode mode)
+int fcreate(char *path)
 {
     if (!fs_initialized())
     {
         printf("fcreate: file system is not initialized. use mkfs().\n");
-        return SYSERR;
-    }
-
-    if (mode != FCREATE_FILE && mode != FCREATE_DIR)
-    {
-        printf("fcreate: mode argument is invalid: %d\n", mode);
-        printf("It should be %s or %s.\n", "FCREATE_FILE", "FCREATE_DIR");
         return SYSERR;
     }
 
@@ -146,51 +44,67 @@ int fcreate(char *path, fcreate_mode mode)
         return SYSERR;
     }
 
+    if (dir.numentries == DIRECTORY_SIZE)
+    {
+        printf("fcreate: Can't create file, directory is full.\n");
+        return SYSERR;
+    }
+
     char *filename = strrchr(path, '/');
     if (filename == NULL)
         filename = path;
     else
         filename++; // skip '/'
 
-    inode *fd_inode = &oft[fd_entry].in;
-    if (mode == FCREATE_FILE
-            && get_file_inode(&dir, filename, fd_inode, INODE_TYPE_FILE) != SYSERR)
+    inode fd_inode;
+    if (get_file_inode(&dir, filename, &fd_inode, INODE_TYPE_FILE) != SYSERR)
     {
         printf("fcreate: File already exists.\n");
-        return SYSERR;
-    }
-    else if (get_file_inode(&dir, filename, fd_inode, INODE_TYPE_DIR) != SYSERR)
-    {
-        printf("fcreate: Directory already exists.\n");
         return SYSERR;
     }
 
     // Allocate INode for the file/directory
     int inode_idx = allocate_inode();
+    printf("fcreate: allocated inode index: %d\n", inode_idx);
     if (inode_idx == SYSERR)
     {
         printf("fcreate: Can't allocate inode for file.\n");
         return SYSERR;
     }
 
-    if (get_inode_by_num(0, inode_idx, fd_inode) == SYSERR)
+    if (get_inode_by_num(0, inode_idx, &fd_inode) == SYSERR)
         return SYSERR;
 
     printf("Updating inode\n");
-    if (mode == FCREATE_FILE)
-        fd_inode->type = INODE_TYPE_FILE;
-    else
-        fd_inode->type = INODE_TYPE_DIR;
-    fd_inode->size = 0;
-    memset(fd_inode->blocks, 0, INODEBLOCKS * sizeof(int));
+    fd_inode.type = INODE_TYPE_FILE;
+    fd_inode.size = 0;
+    memset(fd_inode.blocks, 0, INODEBLOCKS * sizeof(int));
 
     // Write updated inode
-    if (put_inode_by_num(0, inode_idx, fd_inode) == SYSERR)
+    if (put_inode_by_num(0, inode_idx, &fd_inode) == SYSERR)
         return SYSERR;
 
     // Update the file descriptor
     oft[fd_entry].state = O_RDWR;
     oft[fd_entry].cursor = 0;
+
+    // Update directory
+    if (dir.inode_num == -1)
+    {
+        printf("fcreate: Updating root directory.\n");
+        fsd.root_dir.entry[fsd.root_dir.numentries].inode_num = inode_idx;
+        // FIXME: Make sure filename is small enough
+        strcpy(fsd.root_dir.entry[fsd.root_dir.numentries].name, filename);
+        fsd.root_dir.numentries++;
+    }
+    else
+    {
+        dir.entry[dir.numentries].inode_num = inode_idx;
+        // FIXME: Make sure filename is small enough
+        strcpy(dir.entry[dir.numentries].name, filename);
+        dir.numentries++;
+        // FIXME: update inode blocks
+    }
 
     return fd_entry;
 }
