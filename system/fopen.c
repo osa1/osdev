@@ -35,8 +35,8 @@ int fopen(char *path, int flags)
         return SYSERR;
     }
 
-    printf("Parent directory:\n");
-    print_directory(&parent_dir);
+    // printf("Parent directory:\n");
+    // print_directory(&parent_dir);
 
     // now that we have parent directory, drop slashes and search the file in
     // directory
@@ -54,7 +54,7 @@ int fopen(char *path, int flags)
     oft[fd].state = flags;
     oft[fd].cursor = 0;
 
-    return OK;
+    return fd;
 }
 
 #endif /* FS */

@@ -81,8 +81,8 @@ shellcmd xsh_fstest(int nargs, char *args[])
         buf1[i] = (char) j;
     }
 
-    rval = fwrite(fd,buf1,SIZE);
-    if(rval == SYSERR || rval != SIZE )
+    rval = fwrite(fd, buf1, SIZE);
+    if (rval == SYSERR || rval != SIZE)
     {
         printf("File write failed.\n");
         goto clean_up;
@@ -95,7 +95,6 @@ shellcmd xsh_fstest(int nargs, char *args[])
 
     //read the file
     rval = fread(fd, buf2, rval);
-    buf2[rval] = '\0';
 
     if (rval == SYSERR)
     {
@@ -103,18 +102,17 @@ shellcmd xsh_fstest(int nargs, char *args[])
         goto clean_up;
     }
 
-    printf("Content of file %s\n",buf2);
+    buf2[rval] = '\0';
+
+    printf("Content of file %s\n", buf2);
 
     rval = fclose(fd);
-    if(rval != OK)
-    {
-        printf("Return val for fclose: %d\n",rval);
-    }
+    assert(rval == OK);
 
     // Now we should be able to fopen the file, and read same contents.
     fd = fopen("Test_File", O_RDONLY);
-    // assert(fd != SYSERR);
-    // rval = fread(fd, buf2, SIZE);
+    assert(fd != SYSERR);
+    rval = fread(fd, buf2, SIZE);
     // assert(fd != SYSERR);
     // buf2[rval] = '\0';
     // printf("Content of file %s\n",buf2);

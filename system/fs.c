@@ -323,6 +323,14 @@ void print_directory(directory *dir)
     }
 }
 
+void print_inode(inode *in)
+{
+    printf("-- inode --\n"
+           "- type:      %d\n"
+           "- inode_idx: %d\n"
+           "- size:      %d\n", in->type, in->inode_idx, in->size);
+}
+
 int fs_initialized(void)
 {
     return fsd.nblocks != 0;
@@ -479,9 +487,6 @@ int get_file_inode(directory *cur_dir, char *filename, inode *output, int type)
         }
     }
 
-    printf("get_file_inode: File isn't in directory.\n");
-    print_directory(cur_dir);
-    printf("file name: %s\n", filename);
     return SYSERR;
 }
 

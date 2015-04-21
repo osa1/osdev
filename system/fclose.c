@@ -15,12 +15,19 @@ int fclose(int fd)
         return SYSERR;
     }
 
-    // TODO: Normally, we'd need to check caches and update the drive
-    // accordingly, but since we don't use any caches in this implementation,
-    // we can just remove the `oft` entry.
-    //
-    // Make sure we really don't need to implement a cache in this assignment.
+    if (oft[fd].in.type != INODE_TYPE_FILE && oft[fd].in.type != INODE_TYPE_DIR)
+    {
+        printf("fclose: BUG: file descriptor inode type is not %s or %s.\n",
+                "INODE_TYPE_FILE", "INODE_TYPE_DIR");
+        return SYSERR;
+    }
+
     oft[fd].state = O_CLOSED;
+    if (put_inode_by_num(0, oft[fd].in.inode_idx, &oft[fd].in) == SYSERR)
+    {
+        printf("fclose: Can't write inode back to disk.\n");
+        return SYSERR;
+    }
 
     return OK;
 }

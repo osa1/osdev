@@ -19,6 +19,13 @@ int fwrite(int fd, void *buf, int nbytes)
 
     filedesc *desc = &oft[fd];
 
+    if (desc->in.type != INODE_TYPE_FILE && desc->in.type != INODE_TYPE_DIR)
+    {
+        printf("fwrite: BUG: file descriptor inode type is not %s or %s.\n",
+                "INODE_TYPE_FILE", "INODE_TYPE_DIR");
+        return SYSERR;
+    }
+
     if (desc->state == O_CLOSED)
     {
         printf("fwrite: Can't write to closed file.\n");

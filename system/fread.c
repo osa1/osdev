@@ -19,6 +19,13 @@ int fread(int fd, void *buf, int nbytes)
 
     filedesc *desc = &oft[fd];
 
+    if (desc->in.type != INODE_TYPE_FILE && desc->in.type != INODE_TYPE_DIR)
+    {
+        printf("fwrite: BUG: file descriptor inode type is not %s or %s.\n",
+                "INODE_TYPE_FILE", "INODE_TYPE_DIR");
+        return SYSERR;
+    }
+
     if (desc->state == O_CLOSED)
     {
         printf("fread: Can't read a closed file.\n");
@@ -35,6 +42,7 @@ int fread(int fd, void *buf, int nbytes)
     {
         printf("fread: Trying to read after end of file.\n"
                "(diff: %d)\n", desc->cursor + nbytes - desc->in.size);
+        print_inode(&desc->in);
         return SYSERR;
     }
 

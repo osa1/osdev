@@ -77,6 +77,7 @@ int fcreate(char *path)
 
     printf("Updating inode\n");
     fd_inode.type = INODE_TYPE_FILE;
+    fd_inode.inode_idx = inode_idx;
     fd_inode.size = 0;
     memset(fd_inode.blocks, 0, INODEBLOCKS * sizeof(int));
 
@@ -87,6 +88,7 @@ int fcreate(char *path)
     // Update the file descriptor
     oft[fd_entry].state = O_RDWR;
     oft[fd_entry].cursor = 0;
+    memcpy(&oft[fd_entry].in, &fd_inode, sizeof(inode));
 
     // Update directory
     if (dir.inode_num == -1)

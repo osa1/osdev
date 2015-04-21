@@ -19,6 +19,8 @@
 typedef struct
 {
     short int type; // directory or file
+    int inode_idx; // this is required to be able to write inodes back to disk
+                   // when file descriptors are closed
     int size; // file size
     int blocks[INODEBLOCKS]; // block indexes
 } inode;
@@ -115,5 +117,6 @@ void printfreemask(void);
 
 void print_dirent(dirent*);
 void print_directory(directory*);
+void print_inode(inode*);
 
 #endif /* FS_H */
