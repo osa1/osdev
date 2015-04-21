@@ -6,12 +6,25 @@
 #ifdef FS
 
 extern fsystem fsd;
+extern filedesc oft[NUM_FD];
 
 int fopen(char *path, int flags)
 {
     if (!fs_initialized())
     {
         printf("fopen: file system is not initialized. use mkfs().\n");
+        return SYSERR;
+    }
+
+    int fd;
+    for (fd = 0; fd < NUM_FD; fd++)
+        if (oft[fd].state == O_CLOSED)
+            break;
+
+    if (fd >= NUM_FD)
+    {
+        printf("fopen: Can't open file, reached file descriptor limit (%d). "
+               "Close some files first.\n", NUM_FD);
         return SYSERR;
     }
 
@@ -33,15 +46,15 @@ int fopen(char *path, int flags)
     else
         filename++; // skip '/'
 
-    inode file_inode;
-    if (get_file_inode(&parent_dir, filename, &file_inode, INODE_TYPE_FILE) == SYSERR)
+    if (get_file_inode(&parent_dir, filename, &oft[fd].in, INODE_TYPE_FILE) == SYSERR)
     {
         printf("fopen: Can't get file inode: %s\n", filename);
         return SYSERR;
     }
+    oft[fd].state = flags;
+    oft[fd].cursor = 0;
 
-    printf("fopen: not implemented yet.\n");
-    return SYSERR;
+    return OK;
 }
 
 #endif /* FS */
