@@ -248,13 +248,14 @@ int put_inode_by_num(int dev, int inode_number, inode *in)
     // make sure inode_number is in range
     if (inode_number >= fsd.ninodes)
     {
-        printf("get_inode_by_number: inode %d is not in range.\n", inode_number);
+        printf("put_inode_by_number: inode %d is not in range.\n", inode_number);
         return SYSERR;
     }
 
     int inode_block_num    = inodes_start + (inode_number * sizeof(inode)) / dev0_blocksize;
     int inode_block_offset = (inode_number * sizeof(inode)) % dev0_blocksize;
-    printf("put_inode_by_num: inode_block_num: %d, inode_block_offset: %d\n", inode_block_num, inode_block_offset);
+    printf("put_inode_by_num: inode_block_num: %d, inode_block_offset: %d\n",
+            inode_block_num, inode_block_offset);
     return bwrite(dev, inode_block_num, inode_block_offset, (void*)in, sizeof(inode));
 }
 
@@ -309,8 +310,17 @@ void printfreemask(void)
 
 void print_dirent(dirent *ent)
 {
+    inode in;
+    if (get_inode_by_num(0, ent->inode_num, &in) == SYSERR)
+    {
+        printf("print_dirent: Can't get inode %d\n", ent->inode_num);
+        return;
+    }
+
+    bool is_directory = in.type == INODE_TYPE_DIR;
+
     printf("inode_num: %d\n", ent->inode_num);
-    printf("file name: %s\n", ent->name);
+    printf("file name: %s%s\n", ent->name, is_directory ? " (directory)" : "");
 }
 
 void print_directory(directory *dir)
@@ -349,13 +359,11 @@ int get_directory_blocks(void)
         return 0;
     }
 
-    // ops... no ceil in stdlib
-    // return ceil(sizeof(directory) / fsd.blocksz);
-    int bs = sizeof(directory) / fsd.blocksz;
-    if (sizeof(directory) % fsd.blocksz != 0) bs++;
-    return bs;
+    return offset_block_num(sizeof(directory));
 }
 
+// TODO: Just replace this with fsd.blocksz, and check initialization in major
+// functions.
 int get_block_size(void)
 {
     if (!fs_initialized())
@@ -373,9 +381,35 @@ int load_directory(int *blocks, directory *output)
     int i;
     for (i = 0; i < directory_blocks; i++)
     {
-        bread(0, blocks[i], 0, (void*)output + (i * get_block_size()), get_block_size());
+        int read_len;
+        if (i == directory_blocks - 1)
+            read_len = sizeof(directory) % fsd.blocksz;
+        else
+            read_len = fsd.blocksz;
+
+        if (bread(0, blocks[i], 0, ((void*)output) + (i * fsd.blocksz), read_len) == SYSERR)
+            return SYSERR;
     }
-    return 0;
+    return OK;
+}
+
+int write_directory(directory *dir, int *blocks)
+{
+    int directory_blocks = get_directory_blocks();
+    int i;
+    for (i = 0; i < directory_blocks; i++)
+    {
+        int read_len;
+        if (i == directory_blocks - 1)
+            read_len = sizeof(directory) % fsd.blocksz;
+        else
+            read_len = fsd.blocksz;
+
+        if (bwrite(0, blocks[i], 0, ((void*)dir) + (i * fsd.blocksz), read_len) == SYSERR)
+            return SYSERR;
+    }
+
+    return OK;
 }
 
 int find_closed_fd(void)
@@ -481,9 +515,6 @@ int get_file_inode(directory *cur_dir, char *filename, inode *output, int type)
 
             if (output->type == type)
                 return OK;
-            else {
-                printf("------types don't match: %d - %d\n", type, output->type);
-            }
         }
     }
 

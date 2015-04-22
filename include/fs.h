@@ -1,3 +1,11 @@
+/**
+ * Some TODOs:
+ *
+ * - Lots of error checking are copied. Maybe create some functions or macros
+ *   to reduce boilerplate and duplication.
+ *
+ */
+
 #ifndef FS_H
 #define FS_H
 
@@ -58,6 +66,7 @@ typedef struct
     int inode_num; // inode of directory entry. This is not strictly necessary,
                    // but I'm using this to make updating directory entries easier.
                    // NOTE: Root directory is a special case, and it has inode_num = -1.
+                   // TODO: Remove this and keep track of inode indexes in other places.
     dirent entry[DIRECTORY_SIZE];
 } directory;
 
@@ -95,6 +104,7 @@ directory *get_root_dir(void);
 int get_directory_blocks(void);
 int get_block_size(void);
 int load_directory(int *blocks, directory *output);
+int write_directory(directory *dir, int *blocks);
 int allocate_inode(void);
 int find_closed_fd(void);
 int allocate_block(void);

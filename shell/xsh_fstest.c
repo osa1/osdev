@@ -7,6 +7,7 @@
 #define SIZE 1200
 
 void testbitmask(void);
+void test_dir(void);
 
 /**
  * @ingroup shell
@@ -119,15 +120,25 @@ shellcmd xsh_fstest(int nargs, char *args[])
     rval = fclose(fd);
     assert (rval != SYSERR);
 
+
 clean_up:
     memfree(buf1, SIZE);
     memfree(buf2, SIZE);
+
+    test_dir();
 
 #else
     printf("No filesystem support\n");
 #endif
 
     return OK;
+}
+
+void test_dir(void)
+{
+    assert(mkdir("my_dir") != SYSERR);
+    // Now we should be see my_dir in root directory.
+    print_directory(get_root_dir());
 }
 
 void testbitmask(void)

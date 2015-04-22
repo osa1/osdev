@@ -40,7 +40,7 @@ int fcreate(char *path)
     directory dir;
     if (get_parent_directory(get_root_dir(), path, &dir) == SYSERR)
     {
-        printf("fcreate: Can't find parent directory.\n");
+        printf("fcreate: Can't find parent directory of %s.\n", path);
         return SYSERR;
     }
 
@@ -63,7 +63,7 @@ int fcreate(char *path)
         return SYSERR;
     }
 
-    // Allocate INode for the file/directory
+    // Allocate INode for the file
     int inode_idx = allocate_inode();
     printf("fcreate: allocated inode index: %d\n", inode_idx);
     if (inode_idx == SYSERR)
