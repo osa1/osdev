@@ -326,18 +326,19 @@ void print_dirent(dirent *ent)
 
     bool is_directory = in.type == INODE_TYPE_DIR;
 
-    printf("inode_num: %d\n", ent->inode_num);
-    printf("file name: %s%s\n", ent->name, is_directory ? " (directory)" : "");
+    printf("%s\t(inode: %d)\t%s\n",
+            ent->name, ent->inode_num, is_directory ? " (directory)" : "(file)");
 }
 
 void print_directory(directory *dir)
 {
-    printf("Directory with %d entries:\n", dir->numentries);
+    printf("= Directory (%d entries) ===================\n", dir->numentries);
     int i;
     for (i = 0; i < dir->numentries; i++)
     {
         print_dirent(&dir->entry[i]);
     }
+    printf("============================================\n");
 }
 
 void print_inode(inode *in)
