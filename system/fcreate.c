@@ -61,7 +61,6 @@ int fcreate(char *path)
 
     // Allocate INode for the file
     int inode_idx = allocate_inode();
-    printf("fcreate: allocated inode index: %d\n", inode_idx);
     if (inode_idx == SYSERR)
     {
         printf("fcreate: Can't allocate inode for file.\n");
@@ -98,7 +97,17 @@ int fcreate(char *path)
         // FIXME: Make sure filename is small enough
         strcpy(dir.entry[dir.numentries].name, filename);
         dir.numentries++;
-        // FIXME: update inode blocks
+        inode parent_dir_inode;
+        if (get_inode_by_num(0, dir.inode_num, &parent_dir_inode) == SYSERR)
+        {
+            printf("fcreate: Can't get parent directory inodes.\n");
+            return SYSERR;
+        }
+        if (write_directory(&dir, parent_dir_inode.blocks) == SYSERR)
+        {
+            printf("fcreate: Can't update parent directory entry.\n");
+            return SYSERR;
+        }
     }
 
     return fd_entry;
