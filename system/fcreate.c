@@ -84,7 +84,6 @@ int fcreate(char *path)
     // Update directory
     if (dir.inode_num == -1)
     {
-        printf("fcreate: Updating root directory.\n");
         fsd.root_dir.entry[fsd.root_dir.numentries].inode_num = inode_idx;
         // FIXME: Make sure filename is small enough
         strcpy(fsd.root_dir.entry[fsd.root_dir.numentries].name, filename);
