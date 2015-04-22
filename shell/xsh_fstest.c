@@ -53,13 +53,16 @@ shellcmd xsh_fstest(int nargs, char *args[])
 #ifdef FS
     printf("filesystem initialized: %d\n", fs_initialized());
 
+    directory root_dir;
+    get_root_dir(&root_dir);
+
     /* device "0" and default blocksize (=0) and count */
     mkbsdev(0, MDEV_BLOCK_SIZE, MDEV_NUM_BLOCKS);
     mkfs(0, DEFAULT_NUM_INODES);
     printf("filesystem initialized after mkfs: %d\n", fs_initialized());
     printf("get_block_size() -> %d\n", get_block_size());
     printf("get_directory_blocks() -> %d\n", get_directory_blocks());
-    print_directory(get_root_dir());
+    print_directory(&root_dir);
     testbitmask();
 
     buf1 = memget(SIZE * sizeof(char));
@@ -118,8 +121,7 @@ shellcmd xsh_fstest(int nargs, char *args[])
     buf2[rval] = '\0';
     printf("Content of file %s\n",buf2);
     rval = fclose(fd);
-    assert (rval != SYSERR);
-
+    assert(rval != SYSERR);
 
 clean_up:
     memfree(buf1, SIZE);
@@ -136,9 +138,40 @@ clean_up:
 
 void test_dir(void)
 {
-    assert(mkdir("my_dir") != SYSERR);
+    directory root_dir;
+    get_root_dir(&root_dir);
+
+    printf("---0\n");
+    print_directory(&root_dir);
+    printf("----\n");
+    assert(mkdir("d1") != SYSERR);
     // Now we should be see my_dir in root directory.
-    print_directory(get_root_dir());
+    printf("---1\n");
+    print_directory(&root_dir);
+    assert(mkdir("d2") != SYSERR);
+    printf("---2\n");
+    print_directory(&root_dir);
+    assert(mkdir("d3") != SYSERR);
+    assert(mkdir("d4") != SYSERR);
+    assert(mkdir("d5") != SYSERR);
+    assert(mkdir("d6") != SYSERR);
+    assert(mkdir("d7") != SYSERR);
+    print_directory(&root_dir);
+    printf("----\n");
+
+    directory dir;
+    get_root_dir(&dir);
+    get_parent_directory(&dir, "/d1/");
+    print_directory(&dir);
+
+    // int fd = fcreate("d1/d11.file");
+    // assert(fd != SYSERR);
+    // assert(fclose(fd) != SYSERR);
+
+    // // assert(mkdir("/d1/d11") != SYSERR); // <-- problem is here
+    // printf("---3\n");
+    // print_directory(get_root_dir());
+    // printf("----\n");
 }
 
 void testbitmask(void)
