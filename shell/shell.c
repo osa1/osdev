@@ -115,6 +115,7 @@ const struct centry commandtab[] = {
 
     /* assignment 6 */
     {"fstest", FALSE, xsh_fstest},
+    {"ls", FALSE, xsh_ls},
 };
 
 ulong ncommand = sizeof(commandtab) / sizeof(struct centry);
