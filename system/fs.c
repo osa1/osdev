@@ -490,12 +490,9 @@ int get_parent_directory(directory *cur_dir, char *path, directory *output)
         *dir_sep = '/';
         return SYSERR;
     }
-    else
-    {
-        *dir_sep = '/';
-        *output = *cur_dir;
-        return OK;
-    }
+
+    *output = *cur_dir;
+    return OK;
 }
 
 /**
