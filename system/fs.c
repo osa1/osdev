@@ -398,11 +398,9 @@ int load_directory(int *blocks, directory *output)
     int i;
     for (i = 0; i < directory_blocks; i++)
     {
-        int read_len;
-        if (i == directory_blocks - 1)
+        int read_len = fsd.blocksz;
+        if (i == directory_blocks - 1 && sizeof(directory) % fsd.blocksz != 0)
             read_len = sizeof(directory) % fsd.blocksz;
-        else
-            read_len = fsd.blocksz;
 
         if (bread(0, blocks[i], 0, ((void*)output) + (i * fsd.blocksz), read_len) == SYSERR)
             return SYSERR;
@@ -416,13 +414,11 @@ int write_directory(directory *dir, int *blocks)
     int i;
     for (i = 0; i < directory_blocks; i++)
     {
-        int read_len;
-        if (i == directory_blocks - 1)
-            read_len = sizeof(directory) % fsd.blocksz;
-        else
-            read_len = fsd.blocksz;
+        int write_len = fsd.blocksz;
+        if (i == directory_blocks - 1 && sizeof(directory) % fsd.blocksz != 0)
+            write_len = sizeof(directory) % fsd.blocksz;
 
-        if (bwrite(0, blocks[i], 0, ((void*)dir) + (i * fsd.blocksz), read_len) == SYSERR)
+        if (bwrite(0, blocks[i], 0, ((void*)dir) + (i * fsd.blocksz), write_len) == SYSERR)
             return SYSERR;
     }
 
@@ -550,6 +546,15 @@ char *get_filename(char *path)
         return path;
     else
         return ret + 1; // drop '/'
+}
+
+int allocate_blocks(int *blocks, int n)
+{
+    int i;
+    for (i = 0; i < n; i++)
+        if ((blocks[i] = allocate_block()) == SYSERR)
+            return SYSERR;
+    return OK;
 }
 
 #endif /* FS */

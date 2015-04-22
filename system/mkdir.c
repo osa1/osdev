@@ -58,8 +58,19 @@ int mkdir(char *path)
     }
     else
     {
-        printf("mkdir: Updating non-root directory.\n");
-        return SYSERR; // FIXME: implement this
+        inode parent_dir_inode;
+        if (get_inode_by_num(0, parent_dir.inode_num, &parent_dir_inode) == SYSERR)
+        {
+            // This is definitely a bug, we get same inode above
+            printf("mkdir: Can't get parent directory inode.\n");
+            return SYSERR;
+        }
+
+        if (write_directory(&parent_dir, parent_dir_inode.blocks) == SYSERR)
+        {
+            printf("mkdir: Can't update parent directory entry.\n");
+            return SYSERR;
+        }
     }
 
     // Initialize new inode for the new directory
@@ -69,15 +80,10 @@ int mkdir(char *path)
     memset(dir_inode.blocks, 0, INODEBLOCKS * sizeof(int));
 
     // Allocate blocks for new directory entry
-    int dir_blocks = get_directory_blocks();
-    int i;
-    for (i = 0; i < dir_blocks; i++)
+    if (allocate_blocks(dir_inode.blocks, get_directory_blocks()) == SYSERR)
     {
-        if ((dir_inode.blocks[i] = allocate_block()) == SYSERR)
-        {
-            printf("mkdir: Block allocation failed.\n");
-            return SYSERR;
-        }
+        printf("mkdir: Block allocation failed.\n");
+        return SYSERR;
     }
 
     // Create directory entry, and write it to allocated blocks
@@ -90,11 +96,8 @@ int mkdir(char *path)
         return SYSERR;
     }
 
-    printf("mkdir: Updating inode with index: %d\n", inode_idx);
     if (put_inode_by_num(0, &dir_inode) == SYSERR)
         return SYSERR;
-
-    // write directory to allocated blocks
 
     return OK;
 }

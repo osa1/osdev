@@ -157,14 +157,14 @@ void test_dir(void)
     get_parent_directory(get_root_dir(), "/d1/", &dir);
     print_directory(get_root_dir());
 
-    // int fd = fcreate("d1/d11.file");
-    // assert(fd != SYSERR);
-    // assert(fclose(fd) != SYSERR);
+    int fd = fcreate("d1/d11.file");
+    assert(fd != SYSERR);
+    assert(fclose(fd) != SYSERR);
 
-    // // assert(mkdir("/d1/d11") != SYSERR); // <-- problem is here
-    // printf("---3\n");
-    // print_directory(get_root_dir());
-    // printf("----\n");
+    assert(mkdir("/d1/d11") != SYSERR);
+    printf("---3\n");
+    print_directory(get_root_dir());
+    printf("----\n");
 }
 
 void testbitmask(void)
