@@ -95,7 +95,7 @@ int mkfs(int dev, int num_inodes);
 
 /* file system utils and helpers */
 int get_inode_by_num(int dev, int inode_number, inode *in);
-int put_inode_by_num(int dev, int inode_number, inode *in);
+int put_inode_by_num(int dev, inode *in);
 int setmaskbit(int b);
 int clearmaskbit(int b);
 int getmaskbit(int b);

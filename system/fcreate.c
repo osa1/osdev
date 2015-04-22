@@ -68,9 +68,6 @@ int fcreate(char *path)
         return SYSERR;
     }
 
-    if (get_inode_by_num(0, inode_idx, &fd_inode) == SYSERR)
-        return SYSERR;
-
     printf("Updating inode\n");
     fd_inode.type = INODE_TYPE_FILE;
     fd_inode.inode_idx = inode_idx;
@@ -78,7 +75,7 @@ int fcreate(char *path)
     memset(fd_inode.blocks, 0, INODEBLOCKS * sizeof(int));
 
     // Write updated inode
-    if (put_inode_by_num(0, inode_idx, &fd_inode) == SYSERR)
+    if (put_inode_by_num(0, &fd_inode) == SYSERR)
         return SYSERR;
 
     // Update the file descriptor

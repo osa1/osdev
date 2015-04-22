@@ -23,7 +23,7 @@ int fclose(int fd)
     }
 
     oft[fd].state = O_CLOSED;
-    if (put_inode_by_num(0, oft[fd].in.inode_idx, &oft[fd].in) == SYSERR)
+    if (put_inode_by_num(0, &oft[fd].in) == SYSERR)
     {
         printf("fclose: Can't write inode back to disk.\n");
         return SYSERR;

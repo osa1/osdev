@@ -259,17 +259,17 @@ int get_inode_by_num(int dev, int inode_number, inode *in)
     return OK;
 }
 
-int put_inode_by_num(int dev, int inode_number, inode *in)
+int put_inode_by_num(int dev, inode *in)
 {
     // make sure inode_number is in range
-    if (inode_number >= fsd.ninodes)
+    if (in->inode_idx >= fsd.ninodes)
     {
-        printf("put_inode_by_number: inode %d is not in range.\n", inode_number);
+        printf("put_inode_by_number: inode %d is not in range.\n", in->inode_idx);
         return SYSERR;
     }
 
-    int inode_block_num    = inodes_start + (inode_number * sizeof(inode)) / dev0_blocksize;
-    int inode_block_offset = (inode_number * sizeof(inode)) % dev0_blocksize;
+    int inode_block_num    = inodes_start + (in->inode_idx * sizeof(inode)) / dev0_blocksize;
+    int inode_block_offset = (in->inode_idx * sizeof(inode)) % dev0_blocksize;
     // printf("put_inode_by_num: inode_block_num: %d, inode_block_offset: %d\n",
     //         inode_block_num, inode_block_offset);
     return bwrite(dev, inode_block_num, inode_block_offset, (void*)in, sizeof(inode));

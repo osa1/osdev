@@ -91,7 +91,7 @@ int mkdir(char *path)
     }
 
     printf("mkdir: Updating inode with index: %d\n", inode_idx);
-    if (put_inode_by_num(0, inode_idx, &dir_inode) == SYSERR)
+    if (put_inode_by_num(0, &dir_inode) == SYSERR)
         return SYSERR;
 
     // write directory to allocated blocks
