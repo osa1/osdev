@@ -485,13 +485,14 @@ int get_parent_directory(directory *cur_dir, char *path, directory *output)
                 // Found what we've been looking for, read directory struct
                 *dir_sep = '/';
 
-                if (load_directory(entry_node.blocks, cur_dir) == SYSERR)
+                directory next_level;
+                if (load_directory(entry_node.blocks, &next_level) == SYSERR)
                 {
                     printf("get_parent_directory: Can't load entry's blocks.\n");
                     return SYSERR;
                 }
 
-                return get_parent_directory(cur_dir, dir_sep + 1, output);
+                return get_parent_directory(&next_level, dir_sep + 1, output);
             }
         }
 
