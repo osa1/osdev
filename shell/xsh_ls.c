@@ -7,7 +7,6 @@
  *
  * A simple version of ls command.
  */
-
 shellcmd xsh_ls(int nargs, char *args[])
 {
     char *path = "/";
@@ -35,18 +34,13 @@ shellcmd xsh_ls(int nargs, char *args[])
     }
 
     char *filename = get_filename(path);
-    printf("filename: \"%s\"\n", filename);
-    print_directory(&dir);
-    printf("dir.inode_num = %d\n", dir.inode_num);
 
     if (*filename == '\0' && dir.inode_num == -1)
     {
-        printf("printing parent directory\n");
         print_directory(&dir);
     }
     else
     {
-        printf("not parent\n");
         inode in;
         if (get_file_inode(&dir, filename, &in, INODE_TYPE_DIR) == SYSERR)
         {

@@ -162,6 +162,9 @@ void test_dir(void)
     assert(fclose(fd) != SYSERR);
 
     assert(mkdir("/d1/d11") != SYSERR);
+    assert(mkdir("/d1/d12") != SYSERR);
+    assert(mkdir("/d2/d21") != SYSERR);
+    assert(mkdir("/d2/d22") != SYSERR);
     printf("---3\n");
     print_directory(get_root_dir());
     printf("----\n");
