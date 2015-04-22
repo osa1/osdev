@@ -119,6 +119,8 @@ const struct centry commandtab[] = {
     {"initfs", FALSE, xsh_initfs},
     {"mkdir", FALSE, xsh_mkdir},
     {"touch", FALSE, xsh_touch},
+    {"write", FALSE, xsh_write},
+    {"cat", FALSE, xsh_cat},
 };
 
 ulong ncommand = sizeof(commandtab) / sizeof(struct centry);

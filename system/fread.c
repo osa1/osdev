@@ -38,7 +38,7 @@ int fread(int fd, void *buf, int nbytes)
         return SYSERR;
     }
 
-    if (desc->cursor + nbytes >= desc->in.size)
+    if (desc->cursor + nbytes > desc->in.size)
     {
         printf("fread: Trying to read after end of file.\n"
                "(diff: %d)\n", desc->cursor + nbytes - desc->in.size);
