@@ -50,11 +50,7 @@ int fcreate(char *path)
         return SYSERR;
     }
 
-    char *filename = strrchr(path, '/');
-    if (filename == NULL)
-        filename = path;
-    else
-        filename++; // skip '/'
+    char *filename = get_filename(path);
 
     inode fd_inode;
     if (get_file_inode(&dir, filename, &fd_inode, INODE_TYPE_FILE) != SYSERR)

@@ -223,8 +223,14 @@ int fileblock_to_diskblock(int dev, int fd, int fileblock)
 
 /*
  * NOTE inodes:
- * We store inodes packaged, one block may contain multiple inodes, and some
- * part of an inode may be in next block.
+ * ~~~~~~~~~~~~
+ *
+ * - We store inodes packaged, one block may contain multiple inodes, and some
+ *   part of an inode may be in next block.
+ *
+ * - Since inodes are places in contiguous space, we can safely use bwrite with
+ *   offset + size bigger than a block size.
+ *
  */
 
 /* read in an inode and fill in the pointer */
@@ -239,7 +245,8 @@ int get_inode_by_num(int dev, int inode_number, inode *in)
 
     int inode_block_num    = inodes_start + (inode_number * sizeof(inode)) / dev0_blocksize;
     int inode_block_offset = (inode_number * sizeof(inode)) % dev0_blocksize;
-    printf("get_inode_by_num: inode_block_num: %d, inode_block_offset: %d\n", inode_block_num, inode_block_offset);
+    // printf("get_inode_by_num: inode_block_num: %d, inode_block_offset: %d\n",
+    //         inode_block_num, inode_block_offset);
     return bread(dev, inode_block_num, inode_block_offset, (void*)in, sizeof(inode));
 }
 
@@ -254,8 +261,8 @@ int put_inode_by_num(int dev, int inode_number, inode *in)
 
     int inode_block_num    = inodes_start + (inode_number * sizeof(inode)) / dev0_blocksize;
     int inode_block_offset = (inode_number * sizeof(inode)) % dev0_blocksize;
-    printf("put_inode_by_num: inode_block_num: %d, inode_block_offset: %d\n",
-            inode_block_num, inode_block_offset);
+    // printf("put_inode_by_num: inode_block_num: %d, inode_block_offset: %d\n",
+    //         inode_block_num, inode_block_offset);
     return bwrite(dev, inode_block_num, inode_block_offset, (void*)in, sizeof(inode));
 }
 
@@ -519,6 +526,22 @@ int get_file_inode(directory *cur_dir, char *filename, inode *output, int type)
     }
 
     return SYSERR;
+}
+
+/**
+ * Utilities
+ */
+
+/**
+ * Drop slashes in the path.
+ */
+char *get_filename(char *path)
+{
+    char *ret = strrchr(path, '/');
+    if (ret == NULL)
+        return path;
+    else
+        return ret + 1; // drop '/'
 }
 
 #endif /* FS */

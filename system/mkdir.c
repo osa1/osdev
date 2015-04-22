@@ -24,15 +24,11 @@ int mkdir(char *path)
 
     if (parent_dir.numentries == DIRECTORY_SIZE)
     {
-        printf("mkdir: Can't create file, directory is full.\n");
+        printf("mkdir: Can't create file, parent directory is full.\n");
         return SYSERR;
     }
 
-    char *filename = strrchr(path, '/');
-    if (filename == NULL)
-        filename = path;
-    else
-        filename++; // skip '/'
+    char *filename = get_filename(path);
 
     inode dir_inode;
     if (get_file_inode(&parent_dir, filename, &dir_inode, INODE_TYPE_DIR) != SYSERR)
@@ -49,12 +45,12 @@ int mkdir(char *path)
         return SYSERR;
     }
 
-    // TODO: Don't forget to write updated dir entry to it's blocks.
+    // Update local copy of parent directory
     dirent *entry = &parent_dir.entry[parent_dir.numentries++];
     memcpy(entry->name, filename, FILENAMELEN + 1); // FIXME: This may end up with segfault
     entry->inode_num = inode_idx;
 
-    // Update parent directory
+    // Write updates to the drive
     if (parent_dir.inode_num == -1)
     {
         printf("mkdir: Updating root directory.\n");
@@ -63,19 +59,17 @@ int mkdir(char *path)
     else
     {
         printf("mkdir: Updating non-root directory.\n");
-        return SYSERR;
+        return SYSERR; // FIXME: implement this
     }
 
-    // FIXME: Maybe remove this (and same code in fcreate)
-    if (get_inode_by_num(0, inode_idx, &dir_inode) == SYSERR)
-        return SYSERR;
-
+    // Initialize new inode for the new directory
     dir_inode.type = INODE_TYPE_DIR;
     dir_inode.inode_idx = inode_idx;
     dir_inode.size = 0;
     memset(dir_inode.blocks, 0, INODEBLOCKS * sizeof(int));
 
-    int dir_blocks = offset_block_num(sizeof(directory));
+    // Allocate blocks for new directory entry
+    int dir_blocks = get_directory_blocks();
     int i;
     for (i = 0; i < dir_blocks; i++)
     {
@@ -86,12 +80,7 @@ int mkdir(char *path)
         }
     }
 
-    // Write updated inode
-    printf("mkdir: Updating inode with index: %d\n", inode_idx);
-    if (put_inode_by_num(0, inode_idx, &dir_inode) == SYSERR)
-        return SYSERR;
-
-    // write directory to allocated blocks
+    // Create directory entry, and write it to allocated blocks
     directory new_dir;
     new_dir.numentries = 0;
     new_dir.inode_num = inode_idx;
@@ -101,7 +90,11 @@ int mkdir(char *path)
         return SYSERR;
     }
 
-    // Update parent directory entry
+    printf("mkdir: Updating inode with index: %d\n", inode_idx);
+    if (put_inode_by_num(0, inode_idx, &dir_inode) == SYSERR)
+        return SYSERR;
+
+    // write directory to allocated blocks
 
     return OK;
 }

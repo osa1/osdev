@@ -119,6 +119,9 @@ int bread(int bsdev, int block, int offset, void *buf, int len);
 int bwrite(int bsdev, int block, int offset, void * buf, int len);
 int offset_block_num(int offset);
 
+/* Utilities */
+char *get_filename(char *path);
+
 /* debugging functions */
 void printfreemask(void);
 // TODO: No implementation is provided, but I don't think this is required for
