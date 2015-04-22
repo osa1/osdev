@@ -112,6 +112,7 @@ bool checkbit(char *bitfield, int bit_idx);
 void setbit(char *bitfield, int bit_idx);
 int get_parent_directory(directory *cur_dir, char *path, directory *output);
 int get_file_inode(directory *cur_dir, char *filename, inode *output, int type);
+int allocate_blocks(int *blocks, int n);
 
 /* Block Store functions */
 int mkbsdev(int dev, int blocksize, int numblocks);
