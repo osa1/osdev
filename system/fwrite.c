@@ -57,7 +57,6 @@ int fwrite(int fd, void *buf, int nbytes)
     int df = 0;
     while (nbytes != 0)
     {
-        printf("writing %d bytes.\n", nbytes);
         int block_idx = desc->in.blocks[cursor_block];
 
         if (block_idx <= 0)

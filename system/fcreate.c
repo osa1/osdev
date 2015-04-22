@@ -67,7 +67,6 @@ int fcreate(char *path)
         return SYSERR;
     }
 
-    printf("Updating inode\n");
     fd_inode.type = INODE_TYPE_FILE;
     fd_inode.inode_idx = inode_idx;
     fd_inode.size = 0;

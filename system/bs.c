@@ -44,14 +44,6 @@ int bread(int dev, int block, int offset, void *buf, int len)
         return SYSERR;
     }
 
-    // osa: Added this as a sanity check.
-    // osa: Removed, this turned out to be a useful feature.
-    // if (offset + len > dev0_blocksize)
-    // {
-    //     printf("bread: Can't read from next block.\n");
-    //     return SYSERR;
-    // }
-
     if (offset >= dev0_blocksize)
     {
         printf("bread: Bad offset.\n");
@@ -74,14 +66,6 @@ int bwrite(int dev, int block, int offset, void *buf, int len)
         printf("bwrite: Unsupported device.\n");
         return SYSERR;
     }
-
-    // osa: Added this as a sanity check.
-    // osa: Removed, this turned out to be a useful feature.
-    // if (offset + len > dev0_blocksize)
-    // {
-    //     printf("bwrite: Can't write to next block.\n");
-    //     return SYSERR;
-    // }
 
     if (offset >= dev0_blocksize)
     {

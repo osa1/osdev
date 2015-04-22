@@ -53,8 +53,6 @@ int fread(int fd, void *buf, int nbytes)
     int df = 0;
     while (nbytes != 0)
     {
-        printf("reading %d bytes.\n", nbytes);
-
         int block_idx = desc->in.blocks[cursor_block];
 
         // TODO: We actually need more strict check here, first couple of

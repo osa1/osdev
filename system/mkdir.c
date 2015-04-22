@@ -53,7 +53,6 @@ int mkdir(char *path)
     // Write updates to the drive
     if (parent_dir.inode_num == -1)
     {
-        printf("mkdir: Updating root directory.\n");
         memcpy(&fsd.root_dir, &parent_dir, sizeof(directory));
     }
     else
