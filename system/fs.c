@@ -247,7 +247,16 @@ int get_inode_by_num(int dev, int inode_number, inode *in)
     int inode_block_offset = (inode_number * sizeof(inode)) % dev0_blocksize;
     // printf("get_inode_by_num: inode_block_num: %d, inode_block_offset: %d\n",
     //         inode_block_num, inode_block_offset);
-    return bread(dev, inode_block_num, inode_block_offset, (void*)in, sizeof(inode));
+    if (bread(dev, inode_block_num, inode_block_offset, (void*)in, sizeof(inode)) == SYSERR)
+        return SYSERR;
+
+    if (in->inode_idx != inode_number)
+    {
+        printf("get_inode_by_num: BUG: INode number has different inode_idx.\n");
+        return SYSERR;
+    }
+
+    return OK;
 }
 
 int put_inode_by_num(int dev, int inode_number, inode *in)
