@@ -131,5 +131,7 @@ shellcmd xsh_prodcons(int, char *[]);
 shellcmd xsh_fstest(int, char *[]);
 shellcmd xsh_ls(int, char *[]);
 shellcmd xsh_initfs(int, char *[]);
+shellcmd xsh_mkdir(int, char *[]);
+shellcmd xsh_touch(int, char *[]);
 
 #endif                          /* _SHELL_H_ */
