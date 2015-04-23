@@ -17,7 +17,7 @@ shellcmd xsh_cat(int nargs, char *args[])
         printf("USAGE: cat <file path>\n");
     }
 
-    char *filepath = args[2];
+    char *filepath = args[1];
 
     int fd;
     if ((fd = fopen(filepath, O_RDONLY)) == SYSERR)
