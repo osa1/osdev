@@ -10,6 +10,10 @@
  * - `write` shell command adds '\0' at the end, but doesn't de-allocate blocks
  *   or updates the inode size.
  *
+ * - Superblock always kept in memory. It has allocated blocks in the device,
+ *   but it's never updated. Implement a way to close the file system, and
+ *   write superblock to disk when file system is closed.
+ *
  * Implementation TODO:
  *
  * - Search directory for a given name: for time being exact match
