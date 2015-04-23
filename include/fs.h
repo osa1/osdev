@@ -1,12 +1,17 @@
 /**
- * Some TODOs:
+ * Some TODOs and notes:
  *
  * - Lots of error checking are copied. Maybe create some functions or macros
  *   to reduce boilerplate and duplication.
  *
+ * - Bad things may happen if a file is opened multiple times. We don't update
+ *   inodes in the device before closing the file.
+ *
+ * - `write` shell command adds '\0' at the end, but doesn't de-allocate blocks
+ *   or updates the inode size.
+ *
  * Implementation TODO:
  *
- * - Remove directories
  * - Search directory for a given name: for time being exact match
  * - Meta data about directory: like number of files, number of directories it has, size
  * - Search a file in a directory path: exact match will be sufficient
@@ -20,6 +25,7 @@
  * - Rename directories (mv)
  * - List entries of directories (ls)
  * - File content display (cat)
+ * - Remove directories (rm -rf)
  *
  */
 
