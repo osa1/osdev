@@ -9,8 +9,6 @@ extern fsystem fsd;
  *
  * A shell command that works like UNIX mv.
  */
-
-// FIXME: New names are not applied. e.g. file is copied correctly, but not renamed.
 shellcmd xsh_mv(int nargs, char *args[])
 {
     if (nargs != 3)
@@ -114,6 +112,7 @@ shellcmd xsh_mv(int nargs, char *args[])
         }
 
         // Update destination directory
+        strcpy(file_entry.name, dest_file_name);
         dest_parent.entry[dest_parent.numentries++] = file_entry;
 
         // Write updated directories to the device
