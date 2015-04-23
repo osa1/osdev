@@ -6,6 +6,8 @@
 
 #define SIZE 1200
 
+extern fsystem fsd;
+
 void testbitmask(void);
 void test_dir(void);
 
@@ -180,7 +182,7 @@ void testbitmask(void)
     setmaskbit(292); setmaskbit(356); setmaskbit(355); setmaskbit(354);
     setmaskbit(353); setmaskbit(352);
 
-    printfreemask();
+    printfreemask(fsd.freemask, fsd.freemaskbytes);
 
     clearmaskbit(31); clearmaskbit(95); clearmaskbit(159); clearmaskbit(223);
     clearmaskbit(287); clearmaskbit(351); clearmaskbit(415); clearmaskbit(479);
@@ -190,5 +192,5 @@ void testbitmask(void)
     clearmaskbit(292); clearmaskbit(356); clearmaskbit(355); clearmaskbit(354);
     clearmaskbit(353); clearmaskbit(352);
 
-    printfreemask();
+    printfreemask(fsd.freemask, fsd.freemaskbytes);
 }

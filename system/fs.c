@@ -181,6 +181,15 @@ void setbit(char *bitfield, int idx)
     bitfield[byte] |= (0x80 >> bit);
 }
 
+void clearbit(char *bitfield, int idx)
+{
+    int byte, bit;
+    byte = idx / 8;
+    bit  = idx % 8;
+
+    bitfield[byte] &= ~(0x80 >> bit);
+}
+
 int allocate_inode()
 {
     char *bitfield = fsd.inode_bitfield;
@@ -193,6 +202,28 @@ int allocate_inode()
         }
 
     return SYSERR;
+}
+
+/**
+ * Free an inode and it's blocks.
+ */
+int free_inode(inode *in)
+{
+    if (in->inode_idx < 0)
+    {
+        printf("free_inode: Invalid inode index: %d\n", in->inode_idx);
+        return SYSERR;
+    }
+
+    int *blocks = in->blocks;
+    while (*blocks != 0)
+    {
+        free_block(*blocks);
+        blocks++;
+    }
+    clearbit(fsd.inode_bitfield, in->inode_idx);
+
+    return OK;
 }
 
 int allocate_block(void)
@@ -209,6 +240,12 @@ int allocate_block(void)
     }
 
     return SYSERR;
+}
+
+int free_block(int block)
+{
+    clearbit(fsd.freemask, block);
+    return OK;
 }
 
 int fileblock_to_diskblock(int dev, int fd, int fileblock)
@@ -291,14 +328,7 @@ int getmaskbit(int b)
 /* specify the block number to be unset in the mask */
 int clearmaskbit(int b)
 {
-    int mbyte, mbit, invb;
-    mbyte = b / 8;
-    mbit = b % 8;
-
-    invb = ~(0x80 >> mbit);
-    invb &= 0xFF;
-
-    fsd.freemask[mbyte] &= invb;
+    clearbit(fsd.freemask, b);
     return OK;
 }
 
@@ -306,15 +336,15 @@ int clearmaskbit(int b)
  * indicated in the high-order bit.  Shift the byte by j positions to make the
  * match in bit7 (the 8th bit) and then shift that value 7 times to the
  * low-order bit to print.  Yes, it could be the other way...  */
-void printfreemask(void)
+void printfreemask(char *bytes, int len)
 {
     int i,j;
 
-    for (i=0; i < fsd.freemaskbytes; i++)
+    for (i=0; i < len; i++)
     {
         for (j=0; j < 8; j++)
         {
-            printf("%d", ((fsd.freemask[i] << j) & 0x80) >> 7);
+            printf("%d", ((bytes[i] << j) & 0x80) >> 7);
         }
         if ( (i % 8) == 7 )
         {
@@ -519,7 +549,8 @@ int get_file_inode(directory *cur_dir, char *filename, inode *output, int type)
         dirent entry = cur_dir->entry[i];
         if (strcmp(entry.name, filename) == 0)
         {
-            if (get_inode_by_num(0, entry.inode_num, output) == SYSERR) {
+            if (get_inode_by_num(0, entry.inode_num, output) == SYSERR)
+            {
                 printf("get_file_inode: Can't get inode by num: %d\n", entry.inode_num);
                 return SYSERR;
             }

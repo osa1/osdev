@@ -122,6 +122,10 @@ const struct centry commandtab[] = {
     {"write", FALSE, xsh_write},
     {"cat", FALSE, xsh_cat},
     {"mv", FALSE, xsh_mv},
+    {"rm", FALSE, xsh_rm},
+
+    /* debugging */
+    {"printin", FALSE, xsh_print_in},
 };
 
 ulong ncommand = sizeof(commandtab) / sizeof(struct centry);

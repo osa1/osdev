@@ -123,10 +123,13 @@ int get_block_size(void);
 int load_directory(int *blocks, directory *output);
 int write_directory(directory *dir, int *blocks);
 int allocate_inode(void);
+int free_inode(inode *in);
 int find_closed_fd(void);
 int allocate_block(void);
+int free_block(int block);
 bool checkbit(char *bitfield, int bit_idx);
 void setbit(char *bitfield, int bit_idx);
+void clearbit(char *bitfield, int bit_idx);
 int get_parent_directory(directory *cur_dir, char *path, directory *output);
 int get_file_inode(directory *cur_dir, char *filename, inode *output, int type);
 int allocate_blocks(int *blocks, int n);
@@ -141,7 +144,7 @@ int offset_block_num(int offset);
 char *get_filename(char *path);
 
 /* debugging functions */
-void printfreemask(void);
+void printfreemask(char *bytes, int len);
 // TODO: No implementation is provided, but I don't think this is required for
 //       the assignment
 // void print_fsd(void);
