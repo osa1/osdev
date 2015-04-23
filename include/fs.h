@@ -13,11 +13,8 @@
  * Implementation TODO:
  *
  * - Search directory for a given name: for time being exact match
- * - Meta data about directory: like number of files, number of directories it has, size
  * - Search a file in a directory path: exact match will be sufficient
- * - Meta data about file: (though not required) <- TODO: what does that mean?
  * - Whether allocated space for a directory or file is consumed completely.
- * - Other operation like deleting a file entry or clearing content of the file
  *
  * Done:
  * - Init fs (fsinit)
@@ -26,6 +23,9 @@
  * - List entries of directories (ls)
  * - File content display (cat)
  * - Remove directories (rm -rf)
+ * - Meta data about directory (shown in ls)
+ * - Other operations like deleting a file entry or clearing content of the file
+ *   (rm, write empty string for clearing file)
  *
  */
 

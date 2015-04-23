@@ -354,6 +354,30 @@ void printfreemask(char *bytes, int len)
     printf("\n");
 }
 
+/**
+ * Recursively traverse files and subdirs and return total size of all files.
+ */
+int add_sizes(directory *dir)
+{
+    int ret = 0;
+    int i;
+    for (i = 0; i < dir->numentries; i++)
+    {
+        dirent *ent = &dir->entry[i];
+        inode ent_in;
+        get_inode_by_num(0, ent->inode_num, &ent_in);
+        if (ent_in.type == INODE_TYPE_FILE)
+            ret += ent_in.size;
+        else
+        {
+            directory subdir;
+            load_directory(ent_in.blocks, &subdir);
+            ret += add_sizes(&subdir);
+        }
+    }
+    return ret;
+}
+
 void print_dirent(dirent *ent)
 {
     inode in;
@@ -364,9 +388,17 @@ void print_dirent(dirent *ent)
     }
 
     bool is_directory = in.type == INODE_TYPE_DIR;
+    int size = in.size;
+
+    if (is_directory)
+    {
+        directory dir;
+        load_directory(in.blocks, &dir);
+        size = add_sizes(&dir);
+    }
 
     printf("%s\t(inode: %d, size: %d)\t%s\n",
-            ent->name, ent->inode_num, in.size, is_directory ? " (directory)" : "(file)");
+            ent->name, ent->inode_num, size, is_directory ? " (directory)" : "(file)");
 }
 
 void print_directory(directory *dir)
