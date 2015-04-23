@@ -30,8 +30,6 @@ int inodes_start;
 // first file block number
 int blocks_start;
 
-int fileblock_to_diskblock(int dev, int fd, int fileblock);
-
 /** NOTES
  *
  * Allocation/deallocation of inodes and blocks:
@@ -46,8 +44,6 @@ int fileblock_to_diskblock(int dev, int fd, int fileblock);
  *
  */
 
-// FIXME: Bug: We're not setting bit fields for first couple of reserved
-// blocks.
 int mkfs(int dev, int num_inodes)
 {
     int i;
@@ -248,16 +244,6 @@ int free_block(int block)
     return OK;
 }
 
-int fileblock_to_diskblock(int dev, int fd, int fileblock)
-{
-    if (fileblock >= INODEBLOCKS - 2) {
-        printf("No indirect block support\n");
-        return SYSERR;
-    }
-
-    return oft[fd].in.blocks[fileblock];
-}
-
 /*
  * NOTE inodes:
  * ~~~~~~~~~~~~
@@ -270,7 +256,6 @@ int fileblock_to_diskblock(int dev, int fd, int fileblock)
  *
  */
 
-/* read in an inode and fill in the pointer */
 int get_inode_by_num(int dev, int inode_number, inode *in)
 {
     // make sure inode_number is in range
@@ -336,20 +321,16 @@ int clearmaskbit(int b)
  * indicated in the high-order bit.  Shift the byte by j positions to make the
  * match in bit7 (the 8th bit) and then shift that value 7 times to the
  * low-order bit to print.  Yes, it could be the other way...  */
-void printfreemask(char *bytes, int len)
+void print_bitfield(char *bytes, int len)
 {
-    int i,j;
-
+    int i, j;
     for (i=0; i < len; i++)
     {
         for (j=0; j < 8; j++)
-        {
             printf("%d", ((bytes[i] << j) & 0x80) >> 7);
-        }
-        if ( (i % 8) == 7 )
-        {
+
+        if ((i % 8) == 7)
             printf("\n");
-        }
     }
     printf("\n");
 }

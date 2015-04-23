@@ -13,6 +13,6 @@ shellcmd xsh_print_in(int nargs, char *args[])
 {
     int bs = fsd.ninodes / 8;
     if (fsd.ninodes % 8 != 0) bs++;
-    printfreemask(fsd.inode_bitfield, bs);
+    print_bitfield(fsd.inode_bitfield, bs);
     return OK;
 }

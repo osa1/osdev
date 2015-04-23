@@ -69,9 +69,7 @@ typedef struct
 typedef struct
 {
     int state;
-    // TODO: Disabling these until figuring out how they're useful
     int cursor;
-    // dirent *de; // TODO: why is this a pointer?
     inode in;
 } filedesc;
 
@@ -89,7 +87,6 @@ typedef struct
     int inode_num; // inode of directory entry. This is not strictly necessary,
                    // but I'm using this to make updating directory entries easier.
                    // NOTE: Root directory is a special case, and it has inode_num = -1.
-                   // TODO: Remove this and keep track of inode indexes in other places.
     dirent entry[DIRECTORY_SIZE];
 } directory;
 
@@ -150,11 +147,7 @@ int offset_block_num(int offset);
 char *get_filename(char *path);
 
 /* debugging functions */
-void printfreemask(char *bytes, int len);
-// TODO: No implementation is provided, but I don't think this is required for
-//       the assignment
-// void print_fsd(void);
-
+void print_bitfield(char *bytes, int len);
 void print_dirent(dirent*);
 void print_directory(directory*);
 void print_inode(inode*);
