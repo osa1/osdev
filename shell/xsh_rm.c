@@ -4,6 +4,8 @@
 
 extern fsystem fsd;
 
+int rm_rec(directory *dir);
+
 /**
  * @ingroup shell
  *
@@ -23,7 +25,7 @@ shellcmd xsh_rm(int nargs, char *args[])
     // skip command name
     args++;
     nargs--;
-    if (strcmp(args[1], "-rf") == 0)
+    if (strcmp(args[0], "-rf") == 0)
     {
         rm_dirs = TRUE;
         // skip -rf
@@ -51,7 +53,6 @@ shellcmd xsh_rm(int nargs, char *args[])
         for (j = parent_dir.numentries - 1; j >= 0; j--)
         {
             file_entry = &parent_dir.entry[j];
-            printf("entry name: %s\n", file_entry->name);
             if (strcmp(file_entry->name, filename) == 0)
             {
                 inode in;
@@ -63,17 +64,20 @@ shellcmd xsh_rm(int nargs, char *args[])
 
                 if (in.type == INODE_TYPE_DIR)
                 {
-                    // FIXME: implement this
-                    printf("--- dir, skip\n");
+                    if (!rm_dirs)
+                    {
+                        printf("rm: -rm is not provided, skipping directory: %s\n", filename);
+                        continue;
+                    }
+                    directory contents;
+                    load_directory(in.blocks, &contents);
+                    rm_rec(&contents);
                 }
-                else
-                {
-                    printf("--- removing file entry from parent dir.\n");
-                    for (k = j; k < parent_dir.numentries; k++)
-                        parent_dir.entry[k] = parent_dir.entry[k+1];
-                    parent_dir.numentries--;
-                    free_inode(&in);
-                }
+
+                for (k = j; k < parent_dir.numentries; k++)
+                    parent_dir.entry[k] = parent_dir.entry[k+1];
+                parent_dir.numentries--;
+                free_inode(&in);
             }
         }
 
@@ -93,4 +97,31 @@ shellcmd xsh_rm(int nargs, char *args[])
     }
 
     return 0;
+}
+
+/**
+ * Recursively remove directory contents, freeing inodes and blocks. Doesn't
+ * remove the directory itself.
+ */
+int rm_rec(directory *dir)
+{
+    int i;
+    for (i = 0; i < dir->numentries; i++)
+    {
+        inode in;
+        get_inode_by_num(0, dir->entry[i].inode_num, &in);
+
+        if (in.type == INODE_TYPE_DIR)
+        {
+            // recursively remove contents
+            directory subdir;
+            load_directory(in.blocks, &subdir);
+            rm_rec(&subdir);
+        }
+
+        free_inode(&in);
+    }
+
+    dir->numentries = 0;
+    return OK;
 }
