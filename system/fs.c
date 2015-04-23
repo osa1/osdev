@@ -365,8 +365,8 @@ void print_dirent(dirent *ent)
 
     bool is_directory = in.type == INODE_TYPE_DIR;
 
-    printf("%s\t(inode: %d)\t%s\n",
-            ent->name, ent->inode_num, is_directory ? " (directory)" : "(file)");
+    printf("%s\t(inode: %d, size: %d)\t%s\n",
+            ent->name, ent->inode_num, in.size, is_directory ? " (directory)" : "(file)");
 }
 
 void print_directory(directory *dir)

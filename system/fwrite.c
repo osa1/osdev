@@ -70,7 +70,6 @@ int fwrite(int fd, void *buf, int nbytes)
                 return SYSERR;
             }
             desc->in.blocks[cursor_block] = block_idx;
-            desc->in.size += dev0_blocksize;
         }
 
         // sanity check: inode block should be allocated
@@ -97,6 +96,9 @@ int fwrite(int fd, void *buf, int nbytes)
     }
 
     desc->cursor += ret;
+    if (desc->cursor > desc->in.size)
+        desc->in.size = desc->cursor;
+
     return ret;
 }
 
