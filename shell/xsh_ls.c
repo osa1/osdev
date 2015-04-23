@@ -44,7 +44,7 @@ shellcmd xsh_ls(int nargs, char *args[])
         inode in;
         if (get_file_inode(&dir, filename, &in, INODE_TYPE_DIR) == SYSERR)
         {
-            printf("Can't get inode of file \"%s\".\n", filename);
+            printf("Can't get inode of file \"%s\". (maybe file is not a directory?)\n", filename);
             return SYSERR;
         }
 
