@@ -524,7 +524,7 @@ int get_file_inode(directory *cur_dir, char *filename, inode *output, int type)
                 return SYSERR;
             }
 
-            if (output->type == type)
+            if (type == 0 || output->type == type)
                 return OK;
         }
     }

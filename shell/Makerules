@@ -57,6 +57,7 @@ C_FILES += xsh_prodcons.c
 
 # Assignment 6
 C_FILES += xsh_fstest.c xsh_ls.c xsh_initfs.c xsh_mkdir.c xsh_touch.c xsh_write.c xsh_cat.c
+C_FILES += xsh_mv.c
 
 S_FILES =
 

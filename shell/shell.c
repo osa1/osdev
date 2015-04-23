@@ -121,6 +121,7 @@ const struct centry commandtab[] = {
     {"touch", FALSE, xsh_touch},
     {"write", FALSE, xsh_write},
     {"cat", FALSE, xsh_cat},
+    {"mv", FALSE, xsh_mv},
 };
 
 ulong ncommand = sizeof(commandtab) / sizeof(struct centry);
