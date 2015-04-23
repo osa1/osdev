@@ -16,7 +16,6 @@ extern filedesc oft[NUM_FD];
  *
  * // So we should use O_WRONLY int fd table entry. <- NO
  * According to the provided test file, we should be able to read from the
- *
  * created file. So I'm using RW mode.
  *
  * This only creates files, for creating directories, see `mkdir()`.

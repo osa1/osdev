@@ -4,6 +4,23 @@
  * - Lots of error checking are copied. Maybe create some functions or macros
  *   to reduce boilerplate and duplication.
  *
+ * Implementation TODO:
+ *
+ * - Remove directories
+ * - Search directory for a given name: for time being exact match
+ * - Meta data about directory: like number of files, number of directories it has, size
+ * - Search a file in a directory path: exact match will be sufficient
+ * - Meta data about file: (though not required) <- TODO: what does that mean?
+ * - Whether allocated space for a directory or file is consumed completely.
+ * - Other operation like deleting a file entry or clearing content of the file
+ *
+ * Done:
+ * - Init fs (fsinit)
+ * - Create directories (mkdir)
+ * - Rename directories (mv)
+ * - List entries of directories (ls)
+ * - File content display (cat)
+ *
  */
 
 #ifndef FS_H
