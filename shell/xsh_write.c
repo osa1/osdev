@@ -33,7 +33,7 @@ shellcmd xsh_write(int nargs, char *args[])
     if (str_r != NULL) *str_r = '\0';
     int nbytes = strlen(str);
 
-    if (fwrite(fd, str, nbytes) == SYSERR)
+    if (fwrite(fd, str, nbytes + 1) == SYSERR)
     {
         printf("write: fwrite failed.\n");
         return SYSERR;
