@@ -39,7 +39,7 @@ shellcmd xsh_rm(int nargs, char *args[])
         char *filepath = args[i];
         char *filename = get_filename(filepath);
 
-        printf("filepath: %s\nfilename: %s\n", filepath, filename);
+        // printf("filepath: %s\nfilename: %s\n", filepath, filename);
 
         directory parent_dir;
         if (get_parent_directory(get_root_dir(), filepath, &parent_dir) == SYSERR)
@@ -81,18 +81,22 @@ shellcmd xsh_rm(int nargs, char *args[])
             }
         }
 
-        // FIXME: fix updating root dir
-        inode dir_inode;
-        if (get_inode_by_num(0, parent_dir.inode_num, &dir_inode) == SYSERR)
+        if (parent_dir.inode_num == -1)
+            memcpy(&fsd.root_dir, &parent_dir, sizeof(directory));
+        else
         {
-            printf("rm: Can't get inode of parent directory.\n");
-            return 1;
-        }
+            inode dir_inode;
+            if (get_inode_by_num(0, parent_dir.inode_num, &dir_inode) == SYSERR)
+            {
+                printf("rm: Can't get inode of parent directory.\n");
+                return 1;
+            }
 
-        if (write_directory(&parent_dir, dir_inode.blocks) == SYSERR)
-        {
-            printf("rm: Can't update parent directory.\n");
-            return 1;
+            if (write_directory(&parent_dir, dir_inode.blocks) == SYSERR)
+            {
+                printf("rm: Can't update parent directory.\n");
+                return 1;
+            }
         }
     }
 
