@@ -1,3 +1,203 @@
+# Report for Assignment 6
+
+Commits and diffs: https://github.iu.edu/oagacan/exinu/compare/d191df5...21e07467722a3bc7ea3869bfc578d60298879819
+
+I don't have a team member.
+
+Here's the list of commands I implemented:
+
+(first run `initfs` to initialize data structures, if you run fstest program,
+that runs initialization so you don't need to initfs again)
+
+ls, mkdir, touch, write, cat, mv, rm
+
+I did a demo at discussion session, but here's also a demo that you can try by
+yourself:
+
+    xsh$ fstest
+    filesystem initialized: 0
+    Writing initial blocks to the drive.
+    fsystem:        2 blocks
+    freemask:       1 blocks
+    inode bitfield: 1 blocks
+    inodes_start:   4
+    blocks_start:   12
+    total blocks:   512
+    filesystem initialized after mkfs: 1
+    get_block_size() -> 512
+    get_directory_blocks() -> 2
+    = Directory (0 entries) ===================
+    ============================================
+    1111000000000000000000000000000100000000000000000000000000000000
+    0000000000000000000000000010000100001000000000000000000000000000
+    0000000000000000000000000010000100001000000000000000000000000000
+    0000000000000000000000000010000100001000000000000000000000000000
+    0000000000000000000000000010000100001000000000000000000000000000
+    0000000000000000000000000011111111111000000000000000000000000000
+    0000000000000000000000000000000100000000000000000000000000000000
+    0000000000000000000000000000000100000000000000000000000000000000
+
+    1111000000000000000000000000000000000000000000000000000000000000
+    0000000000000000000000000000000000000000000000000000000000000000
+    0000000000000000000000000000000000000000000000000000000000000000
+    0000000000000000000000000000000000000000000000000000000000000000
+    0000000000000000000000000000000000000000000000000000000000000000
+    0000000000000000000000000000000000000000000000000000000000000000
+    0000000000000000000000000000000000000000000000000000000000000000
+    0000000000000000000000000000000000000000000000000000000000000000
+
+    allocated new block: 12
+    allocated new block: 13
+    allocated new block: 14
+    Content of file <long input omitted>
+
+I added more stuff to test program, it creates some nested files etc.
+
+Listing files: (ls command)
+
+    xsh$ ls
+    = Directory (8 entries) ===================
+    Test_File       (inode: 4, size: 1200)  (file)
+    d1      (inode: 5, size: 0)      (directory)
+    d2      (inode: 6, size: 0)      (directory)
+    d3      (inode: 7, size: 0)      (directory)
+    d4      (inode: 8, size: 0)      (directory)
+    d5      (inode: 9, size: 0)      (directory)
+    d6      (inode: 10, size: 0)     (directory)
+    d7      (inode: 11, size: 0)     (directory)
+    ============================================
+    xsh$ ls d1
+    = Directory (3 entries) ===================
+    d11.file        (inode: 12, size: 0)    (file)
+    d11     (inode: 13, size: 0)     (directory)
+    d12     (inode: 14, size: 0)     (directory)
+    ============================================
+
+Creating new directory: (mkdir command)
+
+    xsh$ mkdir new_dir
+    xsh$ ls
+    = Directory (9 entries) ===================
+    Test_File       (inode: 4, size: 1200)  (file)
+    d1      (inode: 5, size: 0)      (directory)
+    d2      (inode: 6, size: 0)      (directory)
+    d3      (inode: 7, size: 0)      (directory)
+    d4      (inode: 8, size: 0)      (directory)
+    d5      (inode: 9, size: 0)      (directory)
+    d6      (inode: 10, size: 0)     (directory)
+    d7      (inode: 11, size: 0)     (directory)
+    new_dir (inode: 17, size: 0)     (directory)
+    ============================================
+
+Writing things to a file and reading it. (note how ls output is also updated
+for size) (touch, write and cat commands)
+
+    xsh$ touch new_dir/my_file.txt
+    xsh$ write "blah blah blah" new_dir/my_file.txt
+    allocated new block: 39
+    xsh$ cat new_dir/my_file.txt
+    blah blah blahxsh$
+    xsh$ ls new_dir
+    = Directory (1 entries) ===================
+    my_file.txt     (inode: 18, size: 15)   (file)
+    ============================================
+    xsh$ ls
+    = Directory (9 entries) ===================
+    Test_File       (inode: 4, size: 1200)  (file)
+    d1      (inode: 5, size: 0)      (directory)
+    d2      (inode: 6, size: 0)      (directory)
+    d3      (inode: 7, size: 0)      (directory)
+    d4      (inode: 8, size: 0)      (directory)
+    d5      (inode: 9, size: 0)      (directory)
+    d6      (inode: 10, size: 0)     (directory)
+    d7      (inode: 11, size: 0)     (directory)
+    new_dir (inode: 17, size: 15)    (directory)
+    ============================================
+
+Removing files and directories, recursively or not: (rm and rm -rf commands)
+
+    xsh$ ls d1
+    = Directory (3 entries) ===================
+    d11.file        (inode: 12, size: 0)    (file)
+    d11     (inode: 13, size: 0)     (directory)
+    d12     (inode: 14, size: 0)     (directory)
+    ============================================
+    xsh$ rm d1/d11.file
+    xsh$ ls d1
+    = Directory (2 entries) ===================
+    d11     (inode: 13, size: 0)     (directory)
+    d12     (inode: 14, size: 0)     (directory)
+    ============================================
+    xsh$ ls
+    = Directory (9 entries) ===================
+    Test_File       (inode: 4, size: 1200)  (file)
+    d1      (inode: 5, size: 0)      (directory)
+    d2      (inode: 6, size: 0)      (directory)
+    d3      (inode: 7, size: 0)      (directory)
+    d4      (inode: 8, size: 0)      (directory)
+    d5      (inode: 9, size: 0)      (directory)
+    d6      (inode: 10, size: 0)     (directory)
+    d7      (inode: 11, size: 0)     (directory)
+    new_dir (inode: 17, size: 15)    (directory)
+    ============================================
+    xsh$ rm -rf new_dir
+    xsh$ ls
+    = Directory (8 entries) ===================
+    Test_File       (inode: 4, size: 1200)  (file)
+    d1      (inode: 5, size: 0)      (directory)
+    d2      (inode: 6, size: 0)      (directory)
+    d3      (inode: 7, size: 0)      (directory)
+    d4      (inode: 8, size: 0)      (directory)
+    d5      (inode: 9, size: 0)      (directory)
+    d6      (inode: 10, size: 0)     (directory)
+    d7      (inode: 11, size: 0)     (directory)
+    ============================================
+
+Moving files and directories around: (mv command)
+
+    xsh$ ls
+    = Directory (8 entries) ===================
+    Test_File       (inode: 4, size: 1200)  (file)
+    d1      (inode: 5, size: 0)      (directory)
+    d2      (inode: 6, size: 0)      (directory)
+    d3      (inode: 7, size: 0)      (directory)
+    d4      (inode: 8, size: 0)      (directory)
+    d5      (inode: 9, size: 0)      (directory)
+    d6      (inode: 10, size: 0)     (directory)
+    d7      (inode: 11, size: 0)     (directory)
+    ============================================
+    xsh$ mv Test_File d1/Renamed_Too.txt
+    xsh$ ls
+    = Directory (7 entries) ===================
+    d1      (inode: 5, size: 1200)   (directory)
+    d2      (inode: 6, size: 0)      (directory)
+    d3      (inode: 7, size: 0)      (directory)
+    d4      (inode: 8, size: 0)      (directory)
+    d5      (inode: 9, size: 0)      (directory)
+    d6      (inode: 10, size: 0)     (directory)
+    d7      (inode: 11, size: 0)     (directory)
+    ============================================
+    xsh$ ls d1
+    = Directory (3 entries) ===================
+    d11     (inode: 13, size: 0)     (directory)
+    d12     (inode: 14, size: 0)     (directory)
+    Renamed_Too.txt (inode: 4, size: 1200)  (file)
+    ============================================
+    xsh$ cat d1/Renamed_Too.txt
+    <prints contents, omitted here because it's long (see size of the file above)>
+
+I tried to code as clear as possible, I believe reading the implementation
+should be very easy. I also commented some important parts. Functions either
+have descriptive names or comments. Implementation is simple, superblock keeps
+track of root directory, a bitfield for inodes, a bitfield for data blocks. I
+do extensive error checking to make using, reading and debugging as easy as
+possible. Using the file system is completely safe, edge cases like writing or
+seeking after maximum file size etc. are all handled.
+
+Please email me if you don't understand some parts, instead of just dropping my
+points :) Hopefully this won't be necessary because implementation is clear
+enough.
+
 # Report for Assignment 5
 
 I don't have any group members.
