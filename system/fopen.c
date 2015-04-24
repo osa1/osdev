@@ -35,9 +35,6 @@ int fopen(char *path, int flags)
         return SYSERR;
     }
 
-    // printf("Parent directory:\n");
-    // print_directory(&parent_dir);
-
     // now that we have parent directory, drop slashes and search the file in
     // directory
     char *filename = strrchr(path, '/');
@@ -46,11 +43,23 @@ int fopen(char *path, int flags)
     else
         filename++; // skip '/'
 
-    if (get_file_inode(&parent_dir, filename, &oft[fd].in, INODE_TYPE_FILE) == SYSERR)
+    inode file_inode;
+    if (get_file_inode(&parent_dir, filename, &file_inode, INODE_TYPE_FILE) == SYSERR)
     {
         printf("fopen: Can't get file inode: %s\n", filename);
         return SYSERR;
     }
+
+    // Make sure the file is not already open
+    int i;
+    for (i = 0; i < NUM_FD; i++)
+        if (oft[i].state != O_CLOSED && oft[i].in.inode_idx == file_inode.inode_idx)
+        {
+                printf("fopen: Can't open the file, it is already open.\n");
+                return SYSERR;
+        }
+
+    oft[fd].in = file_inode;
     oft[fd].state = flags;
     oft[fd].cursor = 0;
 

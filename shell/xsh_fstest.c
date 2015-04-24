@@ -119,8 +119,14 @@ shellcmd xsh_fstest(int nargs, char *args[])
     assert(fd != SYSERR);
     buf2[rval] = '\0';
     printf("Content of file %s\n",buf2);
+
+    // We shouldn't be able to open a file that is already open
+    printf("This should fail:\n");
+    assert(fopen("Test_File", O_RDONLY) == SYSERR);
+
     rval = fclose(fd);
     assert(rval != SYSERR);
+
 
 clean_up:
     memfree(buf1, SIZE);
