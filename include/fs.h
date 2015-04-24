@@ -1,24 +1,12 @@
 /**
- * Some TODOs and notes:
+ * Some notes:
  *
  * - Lots of error checking are copied. Maybe create some functions or macros
  *   to reduce boilerplate and duplication.
  *
- * - Bad things may happen if a file is opened multiple times. We don't update
- *   inodes in the device before closing the file.
- *
  * - `write` shell command adds '\0' at the end, but doesn't de-allocate blocks
- *   or updates the inode size.
- *
- * - Superblock always kept in memory. It has allocated blocks in the device,
- *   but it's never updated. Implement a way to close the file system, and
- *   write superblock to disk when file system is closed.
- *
- * Implementation TODO:
- *
- * - Search directory for a given name: for time being exact match
- * - Search a file in a directory path: exact match will be sufficient
- * - Whether allocated space for a directory or file is consumed completely.
+ *   or updates the inode size. Do de-allocate, we have to remove the file.
+ *   (`rm` command)
  *
  * Done:
  * - Init fs (fsinit)
@@ -116,6 +104,7 @@ int mkdir(char *path);
 
 /* file system initialization */
 int mkfs(int dev, int num_inodes);
+int savefs(void);
 
 /* file system utils and helpers */
 int get_inode_by_num(int dev, int inode_number, inode *in);

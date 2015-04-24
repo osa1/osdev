@@ -137,6 +137,7 @@ shellcmd xsh_write(int, char *[]);
 shellcmd xsh_cat(int, char *[]);
 shellcmd xsh_mv(int, char *[]);
 shellcmd xsh_rm(int, char *[]);
+shellcmd xsh_savefs(int, char *[]);
 
 /* debugging */
 shellcmd xsh_print_in(int, char *[]);

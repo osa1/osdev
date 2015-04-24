@@ -117,6 +117,7 @@ const struct centry commandtab[] = {
     {"fstest", FALSE, xsh_fstest},
     {"ls", FALSE, xsh_ls},
     {"initfs", FALSE, xsh_initfs},
+    {"savefs", FALSE, xsh_savefs},
     {"mkdir", FALSE, xsh_mkdir},
     {"touch", FALSE, xsh_touch},
     {"write", FALSE, xsh_write},

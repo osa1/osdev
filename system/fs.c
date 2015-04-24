@@ -35,12 +35,7 @@ int blocks_start;
  * Allocation/deallocation of inodes and blocks:
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  * We don't use free lists, we only keep bitfields. This means allocations need
- * linear search.
- *
- * Layout of the file system itself:
- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- *
- * TODO: fill this part
+ * linear search, but we can jump to blocks/inodes in constant time.
  *
  */
 
@@ -155,6 +150,32 @@ int mkfs(int dev, int num_inodes)
 
     // Reset fd table
     memset(&oft, 0, sizeof(filedesc) * NUM_FD);
+
+    return OK;
+}
+
+int savefs(void)
+{
+    if (!fs_initialized())
+    {
+        printf("savefs: File system is not initialized.\n");
+        return SYSERR;
+    }
+
+    // Write fsystem to the drive
+    int i;
+    for (i = 0; i < fsystem_blocks; i++)
+    {
+        int len = dev0_blocksize;
+        if (i == fsystem_blocks - 1)
+            len = sizeof(fsystem) % dev0_blocksize;
+
+        if (bwrite(0, 0 + i, 0, ((void*)&fsd) + i * dev0_blocksize, len) == SYSERR)
+        {
+            printf("savefs: Can't write fsystem to block %d.\n", i);
+            return SYSERR;
+        }
+    }
 
     return OK;
 }
