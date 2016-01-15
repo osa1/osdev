@@ -1,3 +1,8 @@
+My solutions to the assignments of "P536 - Operating Systems" taught in Spring
+2015 at Indiana University.
+
+Original README:
+
 # Embedded Xinu #
 
 Embedded Xinu, Copyright (C) 2008, 2009, 2010.  All rights reserved.
